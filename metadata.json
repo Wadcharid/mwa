@@ -1,0 +1,6 @@
+{
+  "name": "Production Flow Dashboard",
+  "description": "A professional dashboard for monitoring production data from Google Sheets with interactive charts, date filtering, and CSV export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
