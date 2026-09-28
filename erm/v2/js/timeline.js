@@ -86,43 +86,38 @@ class TimelineControllerV2 {
       const statusBorderClass = `status-border-${entry.status || 'normal'}`;
       const statusBadge = this.getStatusBadgeHTML(entry.status);
       const timeFormatted = this.formatSocialTime(entry.timestamp);
-      const avatarInitial = this.getAvatarInitial(entry.reportedBy);
       const hasImage = !!entry.image;
 
       return `
-        <div class="feed-card feed-card-social ${statusBorderClass}" data-entry-id="${entry.id}" data-location-id="${entry.locationId}" title="คลิกเพื่อไปที่จุดนี้บนแผนที่และดูไดอารีฉบับเต็ม">
-          <!-- Social Header: ผู้รายงาน, เวลา และ ป้ายสถานะ -->
-          <div class="social-header">
-            <div class="social-author">
-              <div class="social-avatar" title="ผู้รายงาน: ${this.escapeHTML(entry.reportedBy || 'เจ้าหน้าที่')}">
-                ${avatarInitial}
-              </div>
-              <div class="social-meta">
-                <span class="social-name">${this.escapeHTML(entry.reportedBy || 'เจ้าหน้าที่')}</span>
-                <span class="social-time" title="${this.formatDateTime(entry.timestamp)}">🕒 ${timeFormatted}</span>
-              </div>
+        <div class="feed-card feed-card-compact ${statusBorderClass}" data-entry-id="${entry.id}" data-location-id="${entry.locationId}" title="คลิกเพื่อไปที่จุดนี้บนแผนที่">
+          <!-- แถวบน: ตำแหน่ง และ สถานะ -->
+          <div class="compact-top-row">
+            <div class="compact-location">
+              <span class="compact-pin">📍</span>
+              <strong class="compact-location-name">${this.escapeHTML(entry.locationName)}</strong>
             </div>
             ${statusBadge}
           </div>
 
-          <!-- ตำแหน่งที่รายงาน -->
-          <div class="social-location">
-            <span class="social-pin-icon">📍</span>
-            <span class="social-location-name">${this.escapeHTML(entry.locationName)}</span>
-          </div>
-
-          <!-- เนื้อหาข้อความรายงานสถานการณ์ -->
-          <div class="social-body">
+          <!-- แถวกลาง: ข้อความสรุปสถานการณ์ -->
+          <div class="compact-body">
             ${this.escapeHTML(entry.shortSummary || entry.description || 'ไม่มีข้อความสรุป')}
           </div>
 
-          <!-- รูปภาพแนบ (ถ้ามี) -->
-          ${hasImage ? `
-            <div class="social-photo-preview" onclick="event.stopPropagation(); window.appController.openLightbox('${entry.image}')" title="คลิกเพื่อดูภาพขยาย">
-              <img src="${entry.image}" alt="ภาพถ่ายแนบ" class="social-photo-img" loading="lazy">
-              <span class="social-photo-pill">🔍 ขยายภาพ</span>
+          <!-- แถวล่าง: ผู้รายงาน, เวลา และ ปุ่มดูภาพถ่าย (กรณีมีภาพแนบ) -->
+          <div class="compact-bottom-row">
+            <div class="compact-meta">
+              <span class="compact-reporter" title="ผู้รายงาน">👤 ${this.escapeHTML(entry.reportedBy || 'เจ้าหน้าที่')}</span>
+              <span class="compact-dot">•</span>
+              <span class="compact-time" title="${this.formatDateTime(entry.timestamp)}">🕒 ${timeFormatted}</span>
             </div>
-          ` : ''}
+            ${hasImage ? `
+              <button type="button" class="btn-compact-photo" onclick="event.stopPropagation(); window.appController.openLightbox('${entry.image}')" title="คลิกเพื่อดูภาพถ่ายสถานที่จริง">
+                <span>📷</span>
+                <span>ดูภาพถ่าย</span>
+              </button>
+            ` : ''}
+          </div>
         </div>
       `;
     }).join('');
@@ -130,7 +125,7 @@ class TimelineControllerV2 {
     // Attach click events on feed cards: คลิกเพื่อดูรายละเอียดเพิ่มเติม
     feedContainer.querySelectorAll('.feed-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.social-photo-preview')) return;
+        if (e.target.closest('.btn-compact-photo')) return;
         const locationId = card.getAttribute('data-location-id');
         const loc = window.dataStore.getLocationById(locationId);
         if (loc) {

@@ -473,89 +473,73 @@ body {
 .feed-list {
   flex: 1;
   overflow-y: auto;
-  padding: 12px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 /* ==========================================================================
-   Social Media Post Card Styles (ฟีดสไตล์ Social Media)
+   Compact Feed Card Styles (การแสดงผลฟีดแบบกระชับ)
    ========================================================================== */
 .feed-card {
   background: #ffffff;
   border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 12px 14px;
+  border-radius: 8px;
+  padding: 8px 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  box-shadow: var(--shadow-sm);
+  gap: 5px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .feed-card:hover {
-  background: #ffffff;
+  background: #f8fafc;
   border-color: #cbd5e1;
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Status Border Indicator (Left Edge) */
 .feed-card.status-border-normal {
-  border-left: 4px solid var(--status-normal);
+  border-left: 3.5px solid var(--status-normal);
 }
 .feed-card.status-border-warning {
-  border-left: 4px solid var(--status-warning);
+  border-left: 3.5px solid var(--status-warning);
 }
 .feed-card.status-border-critical {
-  border-left: 4px solid var(--status-critical);
+  border-left: 3.5px solid var(--status-critical);
 }
 .feed-card.status-border-nodata {
-  border-left: 4px solid var(--status-nodata);
+  border-left: 3.5px solid var(--status-nodata);
 }
 
-/* Social Header: Author, Avatar, Time, Status */
-.social-header {
+/* Compact Card Top Row: Location & Status */
+.compact-top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.social-author {
+.compact-location {
   display: flex;
   align-items: center;
-  gap: 10px;
-  overflow: hidden;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
 }
 
-.social-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #e0f2fe, #bae6fd);
-  color: #0369a1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.95rem;
-  border: 1.5px solid #7dd3fc;
+.compact-pin {
+  font-size: 0.82rem;
+  line-height: 1;
   flex-shrink: 0;
-  box-shadow: var(--shadow-xs);
 }
 
-.social-meta {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.3;
-  overflow: hidden;
-}
-
-.social-name {
+.compact-location-name {
   font-size: 0.85rem;
   font-weight: 700;
   color: #0f172a;
@@ -564,100 +548,100 @@ body {
   text-overflow: ellipsis;
 }
 
-.social-time {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-/* Status Badge */
+/* Compact Status Badge */
 .feed-status-badge {
   font-size: 0.68rem;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 12px;
+  padding: 1.5px 7px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 .feed-status-badge.normal { background: var(--status-normal-bg); color: var(--status-normal); border: 1px solid var(--status-normal-border); }
 .feed-status-badge.warning { background: var(--status-warning-bg); color: var(--status-warning); border: 1px solid var(--status-warning-border); }
 .feed-status-badge.critical { background: var(--status-critical-bg); color: var(--status-critical); border: 1px solid var(--status-critical-border); }
 .feed-status-badge.nodata { background: var(--status-nodata-bg); color: var(--status-nodata); border: 1px solid var(--status-nodata-border); }
 
-/* Location Tag */
-.social-location {
-  display: inline-flex;
+/* Compact Body: Situation Summary */
+.compact-body {
+  font-size: 0.8rem;
+  color: #334155;
+  line-height: 1.45;
+  font-weight: 400;
+  word-break: break-word;
+}
+
+/* Compact Bottom Row: Reporter, Time, and Photo Action Button */
+.compact-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 1px;
+}
+
+.compact-meta {
+  display: flex;
   align-items: center;
   gap: 6px;
-  background: #f1f5f9;
-  padding: 3px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  width: fit-content;
-  max-width: 100%;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
 }
 
-.social-pin-icon {
-  font-size: 0.82rem;
-  flex-shrink: 0;
-}
-
-.social-location-name {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #0f172a;
+.compact-reporter {
+  color: #475569;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Message Content */
-.social-body {
-  font-size: 0.84rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  font-weight: 400;
-  word-break: break-word;
+.compact-dot {
+  color: #cbd5e1;
+  font-size: 0.65rem;
+  flex-shrink: 0;
 }
 
-/* Optional Photo Preview */
-.social-photo-preview {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  max-height: 140px;
-  border: 1px solid var(--border-color);
-  cursor: pointer;
-  margin-top: 2px;
-  background: #0f172a;
+.compact-time {
+  color: #64748b;
+  flex-shrink: 0;
 }
 
-.social-photo-img {
-  width: 100%;
-  height: 100%;
-  max-height: 140px;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.25s ease;
-}
-.social-photo-preview:hover .social-photo-img {
-  transform: scale(1.03);
-}
-
-.social-photo-pill {
-  position: absolute;
-  bottom: 6px;
-  right: 8px;
-  background: rgba(15, 23, 42, 0.75);
-  color: #ffffff;
-  font-size: 0.68rem;
-  font-weight: 500;
+/* Compact Photo Button */
+.btn-compact-photo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #f0f9ff;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
   padding: 2px 8px;
-  border-radius: 12px;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.btn-compact-photo:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+  color: #0369a1;
+  transform: translateY(-1px);
+}
+
+.btn-compact-photo:active {
+  transform: translateY(0);
 }
 
 .feed-empty-state {
