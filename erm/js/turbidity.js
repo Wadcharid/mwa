@@ -17,6 +17,7 @@ class TurbidityWidget {
     this.isCollapsed = false; // Initial state: ขยาย (Expanded)
     this.pollInterval = 3 * 60 * 1000; // 3 minutes
     this.timerId = null;
+    this.unsubscribeFirestore = null;
 
     // Target stations in order
     this.targetStations = [
@@ -35,10 +36,48 @@ class TurbidityWidget {
     this.bindEvents();
     this.fetchData();
 
+    // Setup Firebase Firestore Realtime listener if available
+    if (window.ermFirebase) {
+      if (window.ermFirebase.isConnected()) {
+        this.listenFirestoreTurbidity();
+      }
+      window.ermFirebase.onConnectionChange((connected) => {
+        if (connected) {
+          this.listenFirestoreTurbidity();
+        }
+      });
+    }
+
     // Auto-refresh every 3 minutes
     this.timerId = setInterval(() => {
       this.fetchData(false);
     }, this.pollInterval);
+  }
+
+  listenFirestoreTurbidity() {
+    if (!window.ermFirebase || !window.ermFirebase.isConnected()) return;
+    try {
+      const db = window.ermFirebase.getDb();
+      if (!db) return;
+      if (this.unsubscribeFirestore) {
+        this.unsubscribeFirestore();
+        this.unsubscribeFirestore = null;
+      }
+      this.unsubscribeFirestore = db.collection('turbidity').doc('latest')
+        .onSnapshot((doc) => {
+          if (doc.exists) {
+            const data = doc.data();
+            if (data && data.data && Array.isArray(data.data)) {
+              console.log('🔥 Turbidity updated via Firestore Realtime:', data.time);
+              this.renderData(data.data, data.time, data.date);
+            }
+          }
+        }, (err) => {
+          console.warn('Firestore turbidity listener notice:', err);
+        });
+    } catch (e) {
+      console.warn('Error setting up Firestore turbidity listener:', e);
+    }
   }
 
   bindEvents() {
@@ -78,22 +117,63 @@ class TurbidityWidget {
 
   async fetchData(isManual = false) {
     try {
-      // Try PHP endpoint first, with fallback to static cache file
-      let res;
-      try {
-        res = await fetch('get_turbidity.php?t=' + Date.now(), { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-      } catch (err) {
-        // Fallback for static environments (GitHub Pages, etc.)
-        res = await fetch('data/turbidity_cache.json?t=' + Date.now(), { cache: 'no-store' });
+      let data = null;
+
+      // 1. Try Firebase Cloud Firestore first
+      if (window.ermFirebase && window.ermFirebase.isConnected()) {
+        try {
+          const db = window.ermFirebase.getDb();
+          const doc = await db.collection('turbidity').doc('latest').get();
+          if (doc.exists) {
+            const fbData = doc.data();
+            if (fbData && fbData.data && Array.isArray(fbData.data)) {
+              data = fbData;
+            }
+          }
+        } catch (fbErr) {
+          console.warn('Firestore turbidity fetch notice:', fbErr);
+        }
       }
 
-      const json = await res.json();
-      if (json && json.data) {
-        this.renderData(json.data, json.time, json.date);
-      } else {
-        throw new Error('Invalid data structure');
+      // 2. Try PHP endpoint if in server environment (not github.io and running over http)
+      if (!data && !window.location.hostname.includes('github.io') && window.location.protocol.startsWith('http')) {
+        try {
+          const res = await fetch('get_turbidity.php?t=' + Date.now(), { cache: 'no-store' });
+          if (res.ok) {
+            const text = await res.text();
+            if (text.trim().startsWith('{')) {
+              const parsed = JSON.parse(text);
+              if (parsed && parsed.data) {
+                data = parsed;
+              }
+            }
+          }
+        } catch (phpErr) {
+          console.warn('PHP endpoint notice:', phpErr);
+        }
       }
+
+      // 3. Fallback to bundled/cached JSON (works 100% on GitHub Pages, file://, localhost)
+      if (!data) {
+        try {
+          const res = await fetch('data/turbidity_cache.json?t=' + Date.now(), { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json();
+            if (json && json.data) {
+              data = json;
+            }
+          }
+        } catch (jsonErr) {
+          console.warn('Cache file fetch notice:', jsonErr);
+        }
+      }
+
+      if (data && data.data && Array.isArray(data.data)) {
+        this.renderData(data.data, data.time, data.date);
+        return;
+      }
+
+      throw new Error('All data sources unavailable');
     } catch (error) {
       console.warn('Turbidity fetch error, using fallback:', error);
       this.renderFallback();
