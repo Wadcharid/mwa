@@ -1,0 +1,63 @@
+{
+    "status": "success",
+    "source": "live",
+    "date": "28\/09\/2569",
+    "time": "16:20",
+    "updated_at": "2026-09-28 11:25:54",
+    "data": [
+        {
+            "id": "S16",
+            "name": "แควน้อย",
+            "turbidity": 663,
+            "raw_turbidity": "663",
+            "is_high": true,
+            "date": "28\/09\/2569",
+            "time": "16:20"
+        },
+        {
+            "id": "T5",
+            "name": "แควใหญ่",
+            "turbidity": 483,
+            "raw_turbidity": "483",
+            "is_high": true,
+            "date": "28\/09\/2569",
+            "time": "16:20"
+        },
+        {
+            "id": "S11",
+            "name": "แม่กลอง",
+            "turbidity": 373,
+            "raw_turbidity": "373",
+            "is_high": true,
+            "date": "28\/09\/2569",
+            "time": "16:20"
+        },
+        {
+            "id": "S9",
+            "name": "ท่าม่วง",
+            "turbidity": 69,
+            "raw_turbidity": "69",
+            "is_high": false,
+            "date": "28\/09\/2569",
+            "time": "16:20"
+        },
+        {
+            "id": "S12",
+            "name": "บางเลน กม.35",
+            "turbidity": 27.7,
+            "raw_turbidity": "27.7",
+            "is_high": false,
+            "date": "28\/09\/2569",
+            "time": "16:20"
+        },
+        {
+            "id": "S14",
+            "name": "คลองตะวันตก กม.14",
+            "turbidity": 35.9,
+            "raw_turbidity": "35.9",
+            "is_high": false,
+            "date": "28\/09\/2569",
+            "time": "16:20"
+        }
+    ]
+}
