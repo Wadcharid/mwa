@@ -1,6 +1,8 @@
 /**
- * ERM v2 - Data Store Module
+ * ERM v2 - Data Store Module with Firebase Firestore Realtime Support
  * Manages standard locations, custom locations, and the timeline diary stream.
+ * Automatically synchronizes with Firebase Cloud Firestore when configured,
+ * or seamlessly falls back to LocalStorage & local JSON files.
  */
 
 const STORAGE_KEY_TIMELINE = 'erm_v2_timeline_data';
@@ -11,6 +13,9 @@ class DataStoreV2 {
     this.locations = [];
     this.timeline = [];
     this.subscribers = [];
+    this.unsubscribeFirestoreTimeline = null;
+    this.unsubscribeFirestoreLocations = null;
+    this.isSyncingWithFirebase = false;
   }
 
   subscribe(callback) {
@@ -20,24 +25,119 @@ class DataStoreV2 {
   }
 
   notify() {
-    this.subscribers.forEach(cb => cb({
-      locations: this.getAllLocations(),
-      timeline: this.getTimeline()
-    }));
+    this.subscribers.forEach(cb => {
+      try {
+        cb({
+          locations: this.getAllLocations(),
+          timeline: this.getTimeline()
+        });
+      } catch (e) {
+        console.error('DataStore subscriber error:', e);
+      }
+    });
   }
 
   async init() {
-    // 1. Load Locations
+    // 1. Initial fast load from Local Storage & bundled JSON (zero delay)
     await this.loadLocations();
-
-    // 2. Load Timeline
     await this.loadTimeline();
-
     this.notify();
+
+    // 2. Initialize Firebase if available
+    if (window.ermFirebase) {
+      const isReady = window.ermFirebase.init();
+      if (isReady && window.ermFirebase.isConnected()) {
+        this.setupFirestoreSync();
+      }
+
+      // Re-bind if config changes dynamically in modal
+      window.ermFirebase.onConnectionChange((connected) => {
+        if (connected) {
+          this.setupFirestoreSync();
+        } else {
+          this.detachFirestoreSync();
+        }
+      });
+    }
+
     return {
       locations: this.getAllLocations(),
       timeline: this.getTimeline()
     };
+  }
+
+  setupFirestoreSync() {
+    const db = window.ermFirebase.getDb();
+    if (!db) return;
+
+    this.detachFirestoreSync();
+    console.log('🔄 Setting up Firestore Realtime Listeners...');
+
+    // 1. Sync Timeline Collection
+    try {
+      this.unsubscribeFirestoreTimeline = db.collection('timeline')
+        .orderBy('timestamp', 'desc')
+        .onSnapshot((snapshot) => {
+          if (!snapshot.empty) {
+            const items = [];
+            snapshot.forEach(doc => {
+              items.push({ id: doc.id, ...doc.data() });
+            });
+            this.timeline = items;
+            this.saveTimelineToStorage();
+            this.notify();
+            console.log(`🔥 Received ${items.length} timeline entries from Firestore.`);
+          } else {
+            console.log('ℹ️ Firestore timeline collection is currently empty.');
+          }
+        }, (err) => {
+          console.warn('⚠️ Firestore timeline snapshot error (checking rules?):', err);
+        });
+    } catch (e) {
+      console.error('Error attaching timeline snapshot listener:', e);
+    }
+
+    // 2. Sync Locations Collection
+    try {
+      this.unsubscribeFirestoreLocations = db.collection('locations')
+        .onSnapshot((snapshot) => {
+          if (!snapshot.empty) {
+            const firestoreLocs = [];
+            snapshot.forEach(doc => {
+              firestoreLocs.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Merge with standard fallback locations if missing
+            const stdLocs = this.getFallbackLocations();
+            const combined = [...firestoreLocs];
+            stdLocs.forEach(std => {
+              if (!combined.some(l => l.id === std.id)) {
+                combined.push(std);
+              }
+            });
+
+            this.locations = combined;
+            this.saveCustomLocationsToStorage();
+            this.notify();
+            console.log(`🔥 Received ${firestoreLocs.length} locations from Firestore.`);
+          }
+        }, (err) => {
+          console.warn('⚠️ Firestore locations snapshot error:', err);
+        });
+    } catch (e) {
+      console.error('Error attaching locations snapshot listener:', e);
+    }
+  }
+
+  detachFirestoreSync() {
+    if (this.unsubscribeFirestoreTimeline) {
+      this.unsubscribeFirestoreTimeline();
+      this.unsubscribeFirestoreTimeline = null;
+    }
+    if (this.unsubscribeFirestoreLocations) {
+      this.unsubscribeFirestoreLocations();
+      this.unsubscribeFirestoreLocations = null;
+    }
   }
 
   getBasePath() {
@@ -170,8 +270,9 @@ class DataStoreV2 {
 
   /**
    * Add a new Timeline record (Diary Post)
+   * Automatically persists to Firebase Cloud Firestore and LocalStorage
    */
-  addTimelineEntry(entry) {
+  async addTimelineEntry(entry) {
     const newEntry = {
       id: 'tl-' + Date.now(),
       locationId: entry.locationId,
@@ -187,16 +288,29 @@ class DataStoreV2 {
       image: entry.image || ''
     };
 
+    // Optimistic Local update
     this.timeline.unshift(newEntry);
     this.saveTimelineToStorage();
     this.notify();
+
+    // Firebase Firestore sync
+    if (window.ermFirebase && window.ermFirebase.isConnected()) {
+      try {
+        const db = window.ermFirebase.getDb();
+        await db.collection('timeline').doc(newEntry.id).set(newEntry);
+        console.log('✅ Entry saved to Firebase Firestore:', newEntry.id);
+      } catch (err) {
+        console.error('❌ Failed to save entry to Firestore:', err);
+      }
+    }
+
     return newEntry;
   }
 
   /**
    * Add a new Custom Location (e.g. from clicking on map)
    */
-  addCustomLocation(name, lat, lng, description = '') {
+  async addCustomLocation(name, lat, lng, description = '') {
     const id = 'loc-custom-' + Date.now();
     const newLoc = {
       id,
@@ -212,16 +326,68 @@ class DataStoreV2 {
     this.locations.push(newLoc);
     this.saveCustomLocationsToStorage();
     this.notify();
+
+    // Firebase Firestore sync
+    if (window.ermFirebase && window.ermFirebase.isConnected()) {
+      try {
+        const db = window.ermFirebase.getDb();
+        await db.collection('locations').doc(newLoc.id).set(newLoc);
+        console.log('✅ Custom location saved to Firebase Firestore:', newLoc.id);
+      } catch (err) {
+        console.error('❌ Failed to save custom location to Firestore:', err);
+      }
+    }
+
     return newLoc;
   }
 
   /**
    * Delete a timeline entry (Admin only)
    */
-  deleteTimelineEntry(entryId) {
+  async deleteTimelineEntry(entryId) {
     this.timeline = this.timeline.filter(e => e.id !== entryId);
     this.saveTimelineToStorage();
     this.notify();
+
+    // Firebase Firestore sync
+    if (window.ermFirebase && window.ermFirebase.isConnected()) {
+      try {
+        const db = window.ermFirebase.getDb();
+        await db.collection('timeline').doc(entryId).delete();
+        console.log('🗑️ Entry deleted from Firestore:', entryId);
+      } catch (err) {
+        console.error('❌ Failed to delete entry from Firestore:', err);
+      }
+    }
+  }
+
+  /**
+   * Migrate / Seed standard locations & timeline history into Firebase Cloud Firestore
+   */
+  async syncAllToFirebase() {
+    if (!window.ermFirebase || !window.ermFirebase.isConnected()) {
+      throw new Error('Firebase ยังไม่ได้เชื่อมต่อ กรุณาระบุ Firebase Config ก่อน');
+    }
+
+    const db = window.ermFirebase.getDb();
+    let locationsCount = 0;
+    let timelineCount = 0;
+
+    // 1. Seed Locations
+    const locs = this.getAllLocations();
+    for (const loc of locs) {
+      await db.collection('locations').doc(loc.id).set(loc, { merge: true });
+      locationsCount++;
+    }
+
+    // 2. Seed Timeline
+    const entries = this.getTimeline();
+    for (const entry of entries) {
+      await db.collection('timeline').doc(entry.id).set(entry, { merge: true });
+      timelineCount++;
+    }
+
+    return { locationsCount, timelineCount };
   }
 
   /**
@@ -243,13 +409,24 @@ class DataStoreV2 {
   async importTimelineJSON(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const imported = JSON.parse(e.target.result);
           if (Array.isArray(imported)) {
             this.timeline = imported;
             this.saveTimelineToStorage();
             this.notify();
+
+            // Also sync to Firebase if online
+            if (window.ermFirebase && window.ermFirebase.isConnected()) {
+              const db = window.ermFirebase.getDb();
+              for (const item of imported) {
+                if (item.id) {
+                  await db.collection('timeline').doc(item.id).set(item, { merge: true });
+                }
+              }
+            }
+
             resolve(imported.length);
           } else {
             reject(new Error('รูปแบบไฟล์ JSON ไม่ถูกต้อง (ต้องเป็น Array)'));

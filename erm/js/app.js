@@ -50,8 +50,19 @@ class ApplicationControllerV2 {
       }
     });
 
+    // 6.1 Initialize Firebase UI Status
+    if (window.ermFirebase) {
+      this.updateFirebaseUI(window.ermFirebase.isConnected());
+      window.ermFirebase.onConnectionChange(connected => {
+        this.updateFirebaseUI(connected);
+      });
+    }
+
     // 7. Load Data
     const { locations, timeline } = await window.dataStore.init();
+    if (window.ermFirebase) {
+      this.updateFirebaseUI(window.ermFirebase.isConnected());
+    }
     this.populateLocationDropdown(locations);
     this.updateKPIs(locations, timeline);
     this.updateAuthUI(window.authManager.isAdmin());
@@ -328,6 +339,9 @@ class ApplicationControllerV2 {
         }
       });
     }
+
+    // 3.1 Firebase Configuration & Sync Events
+    this.bindFirebaseEvents();
 
     // 4. Add Report Button
     const addReportBtn = document.getElementById('btn-add-report');
@@ -795,6 +809,173 @@ class ApplicationControllerV2 {
     if (modal && imgEl) {
       imgEl.src = imageSrc;
       this.openModal('modal-lightbox');
+    }
+  }
+
+  bindFirebaseEvents() {
+    const toggleBtn = document.getElementById('btn-firebase-toggle');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        this.populateFirebaseModal();
+        this.openModal('modal-firebase');
+      });
+    }
+
+    const parseBtn = document.getElementById('btn-parse-fb-paste');
+    const pasteArea = document.getElementById('fb-paste-area');
+    if (parseBtn && pasteArea) {
+      parseBtn.addEventListener('click', () => {
+        const text = pasteArea.value;
+        if (!text.trim()) {
+          this.showToast('กรุณาวางโค้ดก่อนกดแยกค่า', 'error');
+          return;
+        }
+        const extract = (key) => {
+          const match = text.match(new RegExp(`${key}\\s*:\\s*["']([^"']+)["']`));
+          return match ? match[1] : '';
+        };
+        const apiKey = extract('apiKey');
+        const projectId = extract('projectId') || 'mwa-erm';
+        const authDomain = extract('authDomain');
+        const storageBucket = extract('storageBucket');
+        const appId = extract('appId');
+
+        if (apiKey) document.getElementById('fb-api-key').value = apiKey;
+        if (projectId) document.getElementById('fb-project-id').value = projectId;
+        if (authDomain) document.getElementById('fb-auth-domain').value = authDomain;
+        if (storageBucket) document.getElementById('fb-storage-bucket').value = storageBucket;
+        if (appId) document.getElementById('fb-app-id').value = appId;
+
+        this.showToast('⚡ แยกข้อมูล Firebase Config เรียบร้อย');
+      });
+    }
+
+    const form = document.getElementById('form-firebase-config');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const apiKey = document.getElementById('fb-api-key').value.trim();
+        const projectId = document.getElementById('fb-project-id').value.trim() || 'mwa-erm';
+        const authDomain = document.getElementById('fb-auth-domain').value.trim();
+        const storageBucket = document.getElementById('fb-storage-bucket').value.trim();
+        const appId = document.getElementById('fb-app-id').value.trim();
+
+        const cfg = { apiKey, projectId, authDomain, storageBucket, appId };
+        window.ermFirebase.saveConfig(cfg);
+        const ok = window.ermFirebase.init();
+        if (ok) {
+          this.showToast('🔥 เชื่อมต่อ Firebase สำเร็จ! กำลังซิงค์ข้อมูล Realtime');
+          this.closeModal('modal-firebase');
+        } else {
+          this.showToast('⚠️ ไม่สามารถเชื่อมต่อ Firebase ได้ ตรวจสอบ API Key', 'error');
+        }
+      });
+    }
+
+    const resetBtn = document.getElementById('btn-reset-firebase-config');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        if (confirm('คุณต้องการรีเซ็ตการตั้งค่า Firebase หรือไม่? ระบบจะกลับสู่โหมด LocalStorage')) {
+          window.ermFirebase.resetConfig();
+          this.populateFirebaseModal();
+          this.showToast('🔄 รีเซ็ตการตั้งค่า Firebase เรียบร้อย');
+          location.reload();
+        }
+      });
+    }
+
+    const syncBtn = document.getElementById('btn-sync-to-firebase');
+    if (syncBtn) {
+      syncBtn.addEventListener('click', async () => {
+        if (!window.ermFirebase || !window.ermFirebase.isConnected()) {
+          this.showToast('⚠️ กรุณาบันทึกและเชื่อมต่อ Firebase ก่อนนำเข้าข้อมูล', 'error');
+          return;
+        }
+        syncBtn.disabled = true;
+        const origHTML = syncBtn.innerHTML;
+        syncBtn.innerHTML = '<span>⏳ กำลังซิงค์ข้อมูล...</span>';
+        try {
+          const res = await window.dataStore.syncAllToFirebase();
+          this.showToast(`✅ ซิงค์สำเร็จ: ${res.locationsCount} จุด, ${res.timelineCount} รายการ`);
+        } catch (err) {
+          alert('เกิดข้อผิดพลาดในการซิงค์: ' + err.message);
+        } finally {
+          syncBtn.disabled = false;
+          syncBtn.innerHTML = origHTML;
+        }
+      });
+    }
+  }
+
+  populateFirebaseModal() {
+    if (!window.ermFirebase) return;
+    const cfg = window.ermFirebase.getConfig();
+    const apiKeyInput = document.getElementById('fb-api-key');
+    const projInput = document.getElementById('fb-project-id');
+    const authInput = document.getElementById('fb-auth-domain');
+    const bucketInput = document.getElementById('fb-storage-bucket');
+    const appIdInput = document.getElementById('fb-app-id');
+
+    if (apiKeyInput) apiKeyInput.value = cfg.apiKey || '';
+    if (projInput) projInput.value = cfg.projectId || 'mwa-erm';
+    if (authInput) authInput.value = cfg.authDomain || 'mwa-erm.firebaseapp.com';
+    if (bucketInput) bucketInput.value = cfg.storageBucket || 'mwa-erm.appspot.com';
+    if (appIdInput) appIdInput.value = cfg.appId || '';
+
+    this.updateFirebaseUI(window.ermFirebase.isConnected());
+  }
+
+  updateFirebaseUI(isConnected) {
+    const dot = document.getElementById('firebase-status-dot');
+    const text = document.getElementById('firebase-status-text');
+    const toggleBtn = document.getElementById('btn-firebase-toggle');
+    const banner = document.getElementById('firebase-banner-status');
+    const bannerDot = document.getElementById('firebase-banner-dot');
+    const bannerTitle = document.getElementById('firebase-banner-title');
+    const bannerSub = document.getElementById('firebase-banner-sub');
+
+    if (isConnected) {
+      if (dot) dot.textContent = '🟢';
+      if (text) text.textContent = 'Firebase Sync';
+      if (toggleBtn) {
+        toggleBtn.style.borderColor = '#22c55e';
+        toggleBtn.style.color = '#15803d';
+        toggleBtn.style.backgroundColor = '#f0fdf4';
+      }
+      if (banner) {
+        banner.style.background = '#dcfce7';
+        banner.style.borderColor = '#86efac';
+      }
+      if (bannerDot) bannerDot.textContent = '🟢';
+      if (bannerTitle) {
+        bannerTitle.textContent = 'เชื่อมต่อ Firebase Cloud Firestore สำเร็จ';
+        bannerTitle.style.color = '#15803d';
+      }
+      if (bannerSub) {
+        bannerSub.textContent = 'ระบบทำงานแบบ Realtime ทุกการแก้ไขจะซิงค์ทันทีทุกเครื่อง';
+        bannerSub.style.color = '#166534';
+      }
+    } else {
+      if (dot) dot.textContent = '🟡';
+      if (text) text.textContent = 'Firebase';
+      if (toggleBtn) {
+        toggleBtn.style.borderColor = '';
+        toggleBtn.style.color = '';
+        toggleBtn.style.backgroundColor = '';
+      }
+      if (banner) {
+        banner.style.background = '#fef9c3';
+        banner.style.borderColor = '#fde047';
+      }
+      if (bannerDot) bannerDot.textContent = '🟡';
+      if (bannerTitle) {
+        bannerTitle.textContent = 'ยังไม่ได้เชื่อมต่อ Firebase';
+        bannerTitle.style.color = '#854d0e';
+      }
+      if (bannerSub) {
+        bannerSub.textContent = 'กำลังทำงานในโหมดออฟไลน์ (LocalStorage)';
+        bannerSub.style.color = '#713f12';
+      }
     }
   }
 

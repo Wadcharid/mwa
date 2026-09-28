@@ -93,6 +93,12 @@
       <button class="btn btn-admin" id="btn-login-toggle">
         <span>🔐 เข้าสู่ระบบ (Admin)</span>
       </button>
+
+      <!-- Firebase Status & Config Button -->
+      <button class="btn btn-outline" id="btn-firebase-toggle" title="ตั้งค่าและตรวจสอบสถานะการเชื่อมต่อ Firebase Cloud Firestore">
+        <span id="firebase-status-dot">🟡</span>
+        <span id="firebase-status-text">Firebase</span>
+      </button>
     </div>
   </header>
 
@@ -398,6 +404,104 @@
     </div>
   </div>
 
+  <!-- =======================================================
+       MODAL 5: FIREBASE DATABASE CONFIGURATION & SYNC
+       ======================================================= -->
+  <div class="modal-backdrop" id="modal-firebase">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span>🔥</span>
+          <span>เชื่อมต่อฐานข้อมูล Firebase (Cloud Firestore)</span>
+        </div>
+        <button class="modal-close" data-close-modal="modal-firebase">&times;</button>
+      </div>
+
+      <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+        <!-- Status Banner -->
+        <div id="firebase-banner-status" style="padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; font-size: 0.88rem; background: #fef9c3; border: 1px solid #fde047;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="firebase-banner-dot" style="font-size: 1.3rem;">🟡</span>
+            <div>
+              <strong id="firebase-banner-title" style="color: #854d0e;">ยังไม่ได้เชื่อมต่อ Firebase</strong>
+              <div id="firebase-banner-sub" style="font-size: 0.76rem; color: #713f12; margin-top: 2px;">ระบบกำลังทำงานในโหมดออฟไลน์ (LocalStorage)</div>
+            </div>
+          </div>
+          <span class="badge" id="firebase-project-badge" style="font-family: monospace; font-size: 0.76rem; background: #ffffff; color: #475569; padding: 4px 8px; border-radius: 4px; border: 1px solid #e2e8f0;">mwa-erm</span>
+        </div>
+
+        <!-- Quick Steps Guide -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 0.8rem; line-height: 1.55;">
+          <div style="font-weight: 600; color: #0f172a; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>📋</span>
+            <span>วิธีเปิดใช้งานบน Firebase Console (ทำครั้งเดียว):</span>
+          </div>
+          <ol style="margin: 0; padding-left: 20px; color: #334155;">
+            <li>เปิดคอนโซลโปรเจกต์: <a href="https://console.firebase.google.com/u/0/project/mwa-erm/overview" target="_blank" style="color: #0284c7; text-decoration: underline; font-weight: 600;">console.firebase.google.com &gt; mwa-erm</a></li>
+            <li>เมนูซ้าย <strong>Build &gt; Firestore Database</strong> &gt; คลิก <strong>Create database</strong> (เลือก Start in test mode หรือกำหนด Rules ให้อ่าน/เขียนได้)</li>
+            <li>ไปที่ <strong>Project Settings (ไอคอนฟันเฟือง ⚙️)</strong> &gt; เลื่อนลงที่ <strong>Your apps</strong> &gt; คลิกไอคอนเว็บ <strong>&lt;/&gt;</strong> &gt; ตั้งชื่อ App แล้วก๊อปปี้ค่า <code>firebaseConfig</code> มาวางด้านล่าง</li>
+          </ol>
+        </div>
+
+        <!-- Configuration Form -->
+        <form id="form-firebase-config">
+          <div class="form-group">
+            <label class="form-label" for="fb-api-key">API Key (apiKey) <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="fb-api-key" class="form-input" value="AIzaSyC26WVUAg_Taj93PZcNHzBGQ5HaFgr70EQ" required>
+          </div>
+
+          <div class="form-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label" for="fb-project-id">Project ID <span style="color: #ef4444;">*</span></label>
+              <input type="text" id="fb-project-id" class="form-input" value="mwa-erm" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="fb-auth-domain">Auth Domain</label>
+              <input type="text" id="fb-auth-domain" class="form-input" value="mwa-erm.firebaseapp.com">
+            </div>
+          </div>
+
+          <div class="form-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label" for="fb-storage-bucket">Storage Bucket</label>
+              <input type="text" id="fb-storage-bucket" class="form-input" value="mwa-erm.firebasestorage.app">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="fb-app-id">App ID</label>
+              <input type="text" id="fb-app-id" class="form-input" value="1:493541324598:web:5f8788ee5b2d8ac3e7a597">
+            </div>
+          </div>
+
+          <!-- Quick Paste Snippet -->
+          <div class="form-group">
+            <label class="form-label" for="fb-paste-area" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>หรือวางโค้ด firebaseConfig ทั้งบล็อกที่นี่:</span>
+              <button type="button" id="btn-parse-fb-paste" class="btn btn-outline" style="padding: 2px 8px; font-size: 0.72rem; color: #0284c7; border-color: #0284c7;">⚡ แยกค่าลงฟอร์มอัตโนมัติ</button>
+            </label>
+            <textarea id="fb-paste-area" class="form-textarea" rows="3" placeholder="วาง const firebaseConfig = { apiKey: '...', ... } ที่ก๊อปปี้มาจาก Firebase Console"></textarea>
+          </div>
+
+          <!-- Action Buttons -->
+          <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-outline" id="btn-sync-to-firebase" title="นำเข้าข้อมูลจุดตรวจการณ์ 17 จุด และ Timeline เดิมขึ้น Firebase ทันที">
+              <span>🚀 นำเข้าข้อมูลเริ่มต้นเข้า Firebase</span>
+            </button>
+            <button type="submit" class="btn btn-primary" id="btn-save-fb-config">
+              <span>💾 บันทึกและเชื่อมต่อ</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <button type="button" class="btn btn-ghost" id="btn-reset-firebase-config" style="color: #ef4444; font-size: 0.78rem;">
+          <span>🔄 รีเซ็ตการเชื่อมต่อ</span>
+        </button>
+        <button type="button" class="btn btn-outline" data-close-modal="modal-firebase">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Mobile Bottom Navigation Bar (Visible only on mobile <= 900px) -->
   <nav class="mobile-nav-bar" id="mobile-nav-bar">
     <button class="mobile-nav-item active" id="btn-mobile-tab-map" type="button">
@@ -421,6 +525,11 @@
   <!-- External Libraries: Leaflet & html2canvas -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Firebase SDK (v10 Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
 
   <!-- Application Modules -->
   <script src="js/auth.js"></script>

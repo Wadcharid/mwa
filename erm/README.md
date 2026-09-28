@@ -24,10 +24,11 @@
    - คลิกบนแผนที่เพื่อปักหมุดจุดใหม่ได้ทันที
    - สามารถลากหมุด (Drag & Drop) เพื่อปรับตำแหน่งพิกัดได้อย่างแม่นยำ
    - แก้ไข/ลบข้อมูล หรือแนบรูปภาพสถานที่จริงได้
-6. **ไม่ต้องใช้ MySQL พร้อม Deploy บน Cloudflare Pages ได้ 100%:**
-   - ทำงานแบบ Serverless / Client-side ทั้งหมดด้วย HTML5, CSS3, JavaScript และ JSON
-   - ข้อมูลถูกจัดเก็บใน `localStorage` ของเบราว์เซอร์ทันทีที่แก้ไข
-   - มีปุ่ม **"ส่งออก JSON"** เพื่อดาวน์โหลดไฟล์ `data/incidents.json` ล่าสุด นำไป Git Commit และ Push ขึ้น GitHub เพื่อให้อัปเดตบน Cloudflare Pages อัตโนมัติ
+6. **เชื่อมต่อฐานข้อมูล Firebase Cloud Firestore (Real-time Sync):**
+   - รองรับการเชื่อมต่อกับ Firebase โปรเจกต์ `mwa-erm` แบบ Real-time ผ่าน Cloud Firestore
+   - ทุกครั้งที่มีการรายงานเหตุการณ์ใหม่ ปักหมุด หรือลบรายการ ข้อมูลจะอัปเดตบนหน้าจอของผู้ใช้ทุกคนพร้อมกันทันที
+   - มีระบบ **Offline Fallback (LocalStorage)** ทำงานได้ลื่นไหลแม้ออฟไลน์หรือยังไม่ได้ใส่ API Key
+   - มีปุ่ม **"นำเข้าข้อมูลเริ่มต้นเข้า Firebase"** ในคลิกเดียว ช่วยส่งข้อมูลจุดตรวจการณ์ 17 จุด และประวัติ Timeline เดิมขึ้นคลาวด์ทันที
 
 ---
 
@@ -38,15 +39,18 @@
 - เปิด Apache ใน XAMPP Control Panel
 - เข้าใช้งานผ่านเว็บเบราว์เซอร์ที่: `http://localhost/ERM/`
 
-### 2. การ Deploy สู่ Cloudflare Pages ผ่าน GitHub
+### 2. การ Deploy สู่ Cloudflare Pages หรือ GitHub Pages
 1. อัปโหลดโค้ดทั้งหมดในโฟลเดอร์นี้ขึ้น **GitHub Repository**
-2. เข้าสู่แดชบอร์ด **Cloudflare Dashboard** -> เมนู **Workers & Pages** -> **Create application** -> **Pages** -> **Connect to Git**
-3. เลือก Repository ของคุณ
-4. ตั้งค่า Build settings:
-   - **Framework preset:** `None`
-   - **Build command:** *(เว้นว่างไว้)*
-   - **Build output directory:** `/` *(Root directory)*
-5. กด **Save and Deploy** ระบบจะพร้อมใช้งานผ่านโดเมน `.pages.dev` ภายในไม่กี่วินาที
+2. ใช้งานบน **GitHub Pages** (Settings > Pages > Branch main) หรือ **Cloudflare Pages**
+3. ระบบจะทำงานได้ 100% ทันที
+
+### 3. การตั้งค่า Firebase Cloud Firestore (mwa-erm)
+1. เข้าไปที่ [Firebase Console: mwa-erm](https://console.firebase.google.com/u/0/project/mwa-erm/overview)
+2. เมนู **Build > Firestore Database** กดปุ่ม **Create database**
+3. เลือก Location เช่น `asia-southeast1` (Singapore) และเลือก **Start in test mode**
+4. ไปที่ **Project Settings (⚙️)** > เลื่อนลงที่ **Your apps** > คลิกไอคอน **Web (</>)**
+5. นำค่า `firebaseConfig` มาใส่ในไฟล์ `js/firebase-config.js` หรือคลิกปุ่ม **"Firebase"** บนแถบเมนูของระบบเพื่อวางค่าและบันทึก
+6. กดปุ่ม **"🚀 นำเข้าข้อมูลเริ่มต้นเข้า Firebase"** เพื่อซิงค์ 17 จุดตรวจการณ์และข้อมูลเดิมขึ้นคลาวด์
 
 ---
 
@@ -55,24 +59,25 @@
 | บทบาท (Role) | สิทธิ์การใช้งาน | ข้อมูลเข้าสู่ระบบ |
 | :--- | :--- | :--- |
 | **ผู้เข้าชมทั่วไป / ผู้บริหาร (Viewer)** | ดูแผนที่ดาวเทียม, อ่านป้ายสถานะทันที, กรองหมวดหมู่, คลิกดูรายละเอียดเชิงลึก, บันทึกภาพรายงาน PNG | ไม่ต้องเข้าสู่ระบบ |
-| **เจ้าหน้าที่ผู้ดูแล (Admin)** | ปักหมุดใหม่บนแผนที่, ลากย้ายตำแหน่ง, แก้ไขข้อมูล, ลบจุด, ส่งออก/นำเข้า JSON | **User:** `admin`<br>**Password:** `admin` |
+| **เจ้าหน้าที่ผู้ดูแล (Admin)** | ปักหมุดใหม่บนแผนที่, ลากย้ายตำแหน่ง, แก้ไขข้อมูล, ลบจุด, ตั้งค่า Firebase | **User:** `admin`<br>**Password:** `admin` |
 
 ---
 
 ```text
 erm/
-├── index.html              # หน้าเว็บหลักระบบ ERM (รองรับ GitHub Pages & Apache)
+├── index.html              # หน้าเว็บหลักระบบ ERM (รองรับ Firebase, GitHub Pages & Apache)
 ├── index.php               # หน้าหลักบนเซิร์ฟเวอร์ PHP/XAMPP พร้อม AD Login
 ├── login.php               # สคริปต์ Login AD ตามโครงสร้าง LDAP
 ├── README.md               # เอกสารคู่มือการใช้งานและ Deploy
 ├── css/
 │   └── style.css           # ดีไซน์โมเดิร์น แผนที่ 70% + ฟีดขวา 30% + ไดอารีไทม์ไลน์
 ├── js/
-│   ├── app.js              # Main Application Coordinator
+│   ├── app.js              # Main Application Coordinator & Firebase UI Controls
 │   ├── auth.js             # จัดการ Session Admin & จำชื่อผู้รายงาน
+│   ├── firebase-config.js  # จัดการเชื่อมต่อ Firebase Cloud Firestore
 │   ├── ip-tracker.js       # ตรวจจับ Client IP Address อัตโนมัติ
 │   ├── image-helper.js     # บีบอัดและแปลงภาพถ่ายเป็นไฟล์ JPG
-│   ├── data-store.js       # จัดการข้อมูล LocalStorage & Export/Import JSON
+│   ├── data-store.js       # จัดการข้อมูล LocalStorage & Firebase Firestore Realtime
 │   ├── map.js              # แผนที่ดาวเทียม Google Maps & หมุด 17 จุดมาตรฐาน
 │   └── timeline.js         # ฟีดอัปเดตเรียงตามเวลา & ไดอารีไทม์ไลน์
 └── data/
