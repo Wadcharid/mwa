@@ -60,36 +60,29 @@
 ---
 
 ```text
-ERM/
-├── index.html              # หน้าเว็บหลัก ระบบเวอร์ชัน 1 (v1)
+erm/
+├── index.html              # หน้าเว็บหลักระบบ ERM (รองรับ GitHub Pages & Apache)
+├── index.php               # หน้าหลักบนเซิร์ฟเวอร์ PHP/XAMPP พร้อม AD Login
+├── login.php               # สคริปต์ Login AD ตามโครงสร้าง LDAP
 ├── README.md               # เอกสารคู่มือการใช้งานและ Deploy
-├── login.txt               # โครงสร้างต้นแบบการ Login LDAP MWA
-├── css/                    # สไตล์สำหรับ v1
-├── js/                     # สคริปต์สำหรับ v1
-├── data/
-│   └── incidents.json      # ฐานข้อมูลเริ่มต้นของ v1
-└── v2/                     # 🚀 ระบบเวอร์ชันใหม่ (คู่ขนาน)
-    ├── index.html          # หน้าหลักเวอร์ชัน 2 (พร้อม Deploy บน GitHub Pages 100%)
-    ├── index.php           # หน้าหลักบนเซิร์ฟเวอร์ PHP/XAMPP
-    ├── login.php           # สคริปต์ Login AD ตามโครงสร้าง login.txt
-    ├── css/
-    │   └── v2-style.css    # ดีไซน์โมเดิร์น แผนที่ซ้าย + ฟีดขวา + ไดอารีไทม์ไลน์
-    ├── js/
-    │   ├── app.js          # Main Application Coordinator
-    │   ├── auth.js         # จัดการ Session Admin & จำชื่อผู้รายงาน
-    │   ├── ip-tracker.js   # ตรวจจับ Client IP Address อัตโนมัติ
-    │   ├── image-helper.js # บีบอัดและแปลงภาพถ่ายเป็นไฟล์ JPG
-    │   ├── data-store.js   # จัดการข้อมูล LocalStorage & Export/Import JSON
-    │   ├── map.js          # แผนที่ดาวเทียม Leaflet & หมุด 17 จุดมาตรฐาน
-    │   └── timeline.js     # ฟีดอัปเดตเรียงตามเวลา & ไดอารีไทม์ไลน์
-    └── data/
-        ├── locations.json  # พิกัด 17 จุดมาตรฐาน + จุดกำหนดเอง
-        └── timeline.json   # ฐานข้อมูลประวัติการบันทึกสถานการณ์ (Timeline)
+├── css/
+│   └── style.css           # ดีไซน์โมเดิร์น แผนที่ 70% + ฟีดขวา 30% + ไดอารีไทม์ไลน์
+├── js/
+│   ├── app.js              # Main Application Coordinator
+│   ├── auth.js             # จัดการ Session Admin & จำชื่อผู้รายงาน
+│   ├── ip-tracker.js       # ตรวจจับ Client IP Address อัตโนมัติ
+│   ├── image-helper.js     # บีบอัดและแปลงภาพถ่ายเป็นไฟล์ JPG
+│   ├── data-store.js       # จัดการข้อมูล LocalStorage & Export/Import JSON
+│   ├── map.js              # แผนที่ดาวเทียม Google Maps & หมุด 17 จุดมาตรฐาน
+│   └── timeline.js         # ฟีดอัปเดตเรียงตามเวลา & ไดอารีไทม์ไลน์
+└── data/
+    ├── locations.json      # พิกัด 17 จุดมาตรฐาน + จุดกำหนดเอง
+    └── timeline.json       # ฐานข้อมูลประวัติการบันทึกสถานการณ์ (Timeline)
 ```
 
 ---
 
-## 🌟 ฟังก์ชันใหม่ใน ERM v2 (Version 2 Features)
+## 🌟 ฟังก์ชันการทำงานหลักของระบบ ERM
 
 1. **จุดตรวจการณ์มาตรฐาน 17 ตำแหน่ง (+ จุดกำหนดเองบนแผนที่):**
    - DPS, TPS, RPS1, RPS2, MH Phase 1 - 4

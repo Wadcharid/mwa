@@ -1,579 +1,801 @@
 /**
- * ERM - Application Controller (app.js)
- * Connects UI, Map, Data Store, Auth, and Report Exporting.
+ * ERM v2 - Application Orchestrator (app.js)
+ * Connects Auth, Map, Data Store, Timeline, Image Upload, and UI Modals.
  */
 
-class ERMApplication {
+class ApplicationControllerV2 {
   constructor() {
-    this.currentEditingId = null;
-    this.pendingCoordinates = null;
+    this.currentBase64Image = '';
+    this.clientIP = 'กำลังตรวจสอบ IP...';
   }
 
   async init() {
-    // 1. Initialize Leaflet Map
-    window.ermMap.init();
+    // 1. Initialize Map
+    window.mapController.init();
 
     // 2. Start Live Clock
-    this.startClock();
+    this.startLiveClock();
 
-    // 3. Bind UI Events
+    // 3. Detect Client IP in background
+    window.ipTracker.getClientIP().then(ip => {
+      this.clientIP = ip;
+      const ipDisplayEl = document.getElementById('report-user-ip');
+      if (ipDisplayEl) {
+        ipDisplayEl.value = ip;
+      }
+    });
+
+    // 4. Bind UI Event Handlers
     this.bindEvents();
 
-    // 4. Subscribe to Auth changes
-    window.authManager.subscribe((isAdmin) => {
+    // 5. Subscribe to Data Store updates
+    window.dataStore.subscribe(({ locations, timeline }) => {
+      window.mapController.renderMarkers(locations);
+      window.timelineController.renderFeed();
+      this.updateKPIs(locations, timeline);
+      this.populateLocationDropdown(locations);
+
+      // Re-render open timeline modal if open
+      if (window.timelineController.currentLocationId) {
+        window.timelineController.renderLocationTimeline(window.timelineController.currentLocationId);
+      }
+    });
+
+    // 6. Subscribe to Auth changes
+    window.authManager.subscribe(isAdmin => {
       this.updateAuthUI(isAdmin);
-      window.ermMap.updateDraggable(isAdmin);
-      // Re-render markers to update edit state
-      const currentData = window.dataStore.getAll();
-      window.ermMap.renderMarkers(currentData);
+      // Re-render timeline to update buttons
+      if (window.timelineController.currentLocationId) {
+        window.timelineController.renderLocationTimeline(window.timelineController.currentLocationId);
+      }
     });
 
-    // 5. Subscribe to Data changes
-    window.dataStore.subscribe((incidents) => {
-      window.ermMap.renderMarkers(incidents);
-      this.updateKPIs(incidents);
-    });
-
-    // 6. Load initial data
-    const incidents = await window.dataStore.init();
-    this.updateKPIs(incidents);
+    // 7. Load Data
+    const { locations, timeline } = await window.dataStore.init();
+    this.populateLocationDropdown(locations);
+    this.updateKPIs(locations, timeline);
     this.updateAuthUI(window.authManager.isAdmin());
-
-    // 7. Load Large Font preference
-    const isLarge = localStorage.getItem('erm_large_text') === 'true';
-    if (isLarge) {
-      document.body.classList.add('large-text-mode');
-    }
-    this.updateFontSizeButtonUI(isLarge);
-
-    // 8. Load Compact Mode preference
-    const isCompact = localStorage.getItem('erm_compact_mode') === 'true';
-    if (isCompact) {
-      document.body.classList.add('compact-mode');
-    }
-    this.updateCompactModeButtonUI(isCompact);
-
-    console.log('ERM Application initialized with', incidents.length, 'incidents.');
-  }
-
-  updateFontSizeButtonUI(isLarge) {
-    const btn = document.getElementById('btn-toggle-font-size');
-    if (btn) {
-      if (isLarge) {
-        btn.innerHTML = '<span>🔤 ตัวหนังสือ: ใหญ่พิเศษ</span>';
-        btn.classList.add('btn-active');
-      } else {
-        btn.innerHTML = '<span>🔤 ขนาดตัวหนังสือ</span>';
-        btn.classList.remove('btn-active');
+    setTimeout(() => {
+      if (window.mapController && window.mapController.map) {
+        window.mapController.map.invalidateSize();
+        window.mapController.scheduleLayoutUpdate();
       }
-    }
+    }, 150);
+
+    console.log(`ERM v2 initialized with ${locations.length} locations and ${timeline.length} timeline entries.`);
   }
 
-  updateCompactModeButtonUI(isCompact) {
-    const btn = document.getElementById('btn-toggle-compact-mode');
-    if (btn) {
-      if (isCompact) {
-        btn.innerHTML = '<span>🏷️ ป้าย: กะทัดรัด (ไร้การซ้อนทับ)</span>';
-        btn.classList.add('btn-active');
-      } else {
-        btn.innerHTML = '<span>🏷️ ป้าย: การ์ดเต็ม</span>';
-        btn.classList.remove('btn-active');
-      }
-    }
-  }
-
-  startClock() {
+  startLiveClock() {
     const clockEl = document.getElementById('live-clock');
-    const updateTime = () => {
+    const update = () => {
+      if (!clockEl) return;
       const now = new Date();
-      const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-      const dateStr = `${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear() + 543}`;
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-      if (clockEl) {
-        clockEl.textContent = `${dateStr} | ${timeStr} น.`;
-      }
+      clockEl.textContent = now.toLocaleDateString('th-TH', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      }) + ' ' + now.toLocaleTimeString('th-TH');
     };
-    updateTime();
-    setInterval(updateTime, 1000);
+    update();
+    setInterval(update, 1000);
   }
 
-  updateKPIs(incidents) {
-    const totalEl = document.getElementById('kpi-total');
-    const normalEl = document.getElementById('kpi-normal');
-    const warningEl = document.getElementById('kpi-warning');
-    const criticalEl = document.getElementById('kpi-critical');
-    const canalEl = document.getElementById('kpi-canal');
-    const facilityEl = document.getElementById('kpi-facility');
-    const waterEl = document.getElementById('kpi-water');
+  updateKPIs(locations, timeline) {
+    const totalEl = document.getElementById('kpi-total-points');
+    const normalEl = document.getElementById('kpi-normal-count');
+    const warningEl = document.getElementById('kpi-warning-count');
+    const criticalEl = document.getElementById('kpi-critical-count');
 
-    const total = incidents.length;
-    const normal = incidents.filter(i => i.status === 'normal').length;
-    const warning = incidents.filter(i => i.status === 'warning').length;
-    const critical = incidents.filter(i => i.status === 'critical').length;
-    const canal = incidents.filter(i => i.category === 'canal').length;
-    const facility = incidents.filter(i => i.category === 'facility').length;
-    const water = incidents.filter(i => i.category === 'water_quality').length;
+    let normal = 0;
+    let warning = 0;
+    let critical = 0;
 
-    if (totalEl) totalEl.textContent = total;
+    locations.forEach(loc => {
+      const st = window.dataStore.getLatestStatusForLocation(loc.id);
+      if (st === 'normal') normal++;
+      else if (st === 'warning') warning++;
+      else if (st === 'critical') critical++;
+    });
+
+    if (totalEl) totalEl.textContent = locations.length;
     if (normalEl) normalEl.textContent = normal;
     if (warningEl) warningEl.textContent = warning;
     if (criticalEl) criticalEl.textContent = critical;
-    if (canalEl) canalEl.textContent = `${canal} จุด`;
-    if (facilityEl) facilityEl.textContent = `${facility} จุด`;
-    if (waterEl) waterEl.textContent = `${water} จุด`;
+
+    const mobileBadge = document.getElementById('mobile-feed-badge');
+    if (mobileBadge) mobileBadge.textContent = timeline.length;
   }
 
   updateAuthUI(isAdmin) {
     const loginBtn = document.getElementById('btn-login-toggle');
-    const adminBanner = document.getElementById('admin-mode-banner');
-    const adminControls = document.querySelectorAll('.admin-only');
+    const addReportBtn = document.getElementById('btn-add-report');
+    const adminBanner = document.getElementById('admin-hint-bar');
 
     if (isAdmin) {
       if (loginBtn) {
         loginBtn.innerHTML = '<span>🔓 ออกจากระบบ (Admin)</span>';
-        loginBtn.classList.remove('btn-admin');
-        loginBtn.classList.add('btn-ghost');
+        loginBtn.className = 'btn btn-logged-in';
       }
-      if (adminBanner) adminBanner.classList.add('show');
-      adminControls.forEach(el => el.style.display = 'inline-flex');
+      if (addReportBtn) addReportBtn.style.display = 'inline-flex';
+      if (adminBanner) adminBanner.style.display = 'flex';
     } else {
       if (loginBtn) {
         loginBtn.innerHTML = '<span>🔐 เข้าสู่ระบบ (Admin)</span>';
-        loginBtn.classList.add('btn-admin');
-        loginBtn.classList.remove('btn-ghost');
+        loginBtn.className = 'btn btn-admin';
       }
-      if (adminBanner) adminBanner.classList.remove('show');
-      adminControls.forEach(el => el.style.display = 'none');
+      if (addReportBtn) addReportBtn.style.display = 'none';
+      if (adminBanner) adminBanner.style.display = 'none';
     }
   }
 
+  populateLocationDropdown(locations) {
+    const select = document.getElementById('report-location-select');
+    if (!select) return;
+
+    const currentVal = select.value;
+    select.innerHTML = `
+      <option value="" disabled selected>-- เลือกตำแหน่งที่ต้องการรายงาน --</option>
+      <optgroup label="📍 ตำแหน่งมาตรฐาน 17 จุด">
+        ${locations.filter(l => l.isStandard).map(l => `
+          <option value="${l.id}">${l.name} (${l.thaiName || l.name})</option>
+        `).join('')}
+      </optgroup>
+      ${locations.filter(l => !l.isStandard).length > 0 ? `
+        <optgroup label="📌 ตำแหน่งอื่นๆ ที่เพิ่มไว้">
+          ${locations.filter(l => !l.isStandard).map(l => `
+            <option value="${l.id}">${l.name}</option>
+          `).join('')}
+        </optgroup>
+      ` : ''}
+      <option value="custom_new">➕ กำหนดจุดใหม่บนแผนที่...</option>
+    `;
+
+    if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+      select.value = currentVal;
+    }
+
+    // Also populate quick jump dropdown in top bar
+    this.populateQuickJumpDropdown(locations);
+  }
+
+  populateQuickJumpDropdown(locations) {
+    const jumpSelect = document.getElementById('quick-jump-select');
+    if (!jumpSelect) return;
+
+    jumpSelect.innerHTML = `
+      <option value="">🎯 ไปยังตำแหน่ง (17 จุด)...</option>
+      <optgroup label="📍 พื้นที่โรงงานมหาสวัสดิ์">
+        ${locations.filter(l => l.isStandard && !['loc-banglen', 'loc-bangkhen', 'loc-thamuang'].includes(l.id)).map(l => `
+          <option value="${l.id}">${l.name}</option>
+        `).join('')}
+      </optgroup>
+      <optgroup label="🌐 จุดรับน้ำ/สถานีภายนอก">
+        ${locations.filter(l => ['loc-banglen', 'loc-bangkhen', 'loc-thamuang'].includes(l.id)).map(l => `
+          <option value="${l.id}">${l.name}</option>
+        `).join('')}
+      </optgroup>
+      ${locations.filter(l => !l.isStandard).length > 0 ? `
+        <optgroup label="📌 จุดอื่นๆ ที่เพิ่มไว้">
+          ${locations.filter(l => !l.isStandard).map(l => `
+            <option value="${l.id}">${l.name}</option>
+          `).join('')}
+        </optgroup>
+      ` : ''}
+    `;
+  }
+
   bindEvents() {
-    // 1. Export Executive Report Button
-    const btnReport = document.getElementById('btn-export-report');
-    if (btnReport) {
-      btnReport.addEventListener('click', () => {
-        window.reportExporter.exportReportPNG();
+    // Quick Jump Location Select
+    const jumpSelect = document.getElementById('quick-jump-select');
+    if (jumpSelect) {
+      jumpSelect.addEventListener('change', () => {
+        const locId = jumpSelect.value;
+        if (!locId) return;
+        const loc = window.dataStore.getLocationById(locId);
+        if (loc) {
+          window.mapController.flyToLocation(loc.lat, loc.lng, 18);
+          this.showToast(`📍 ไปยัง: ${loc.name} (${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)})`);
+        }
+        jumpSelect.value = '';
       });
     }
 
-    // 2. Auth Toggle Button
-    const btnAuth = document.getElementById('btn-login-toggle');
-    if (btnAuth) {
-      btnAuth.addEventListener('click', () => {
+    // Fit All Bounds Button
+    const fitBtn = document.getElementById('btn-fit-bounds');
+    if (fitBtn) {
+      fitBtn.addEventListener('click', () => {
+        window.mapController.fitAllBounds();
+        this.showToast('🗺️ ปรับมุมมองครอบคลุมทุกจุด');
+      });
+    }
+
+    // 1. Reset View Button
+    const resetBtn = document.getElementById('btn-reset-view');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        window.mapController.resetView();
+        this.showToast('🎯 กลับสู่ศูนย์กลางโรงงานมหาสวัสดิ์');
+      });
+    }
+
+    // 1.1 Save Screenshot Button (เฉพาะข้อมูลบนแผนที่ และ ข้อมูลด้านข้าง)
+    const screenshotBtn = document.getElementById('btn-save-screenshot');
+    if (screenshotBtn) {
+      screenshotBtn.addEventListener('click', async () => {
+        const captureArea = document.getElementById('main-capture-area') || document.querySelector('.main-layout');
+        if (!captureArea) return;
+
+        if (typeof html2canvas === 'undefined') {
+          this.showToast('⚠️ กำลังโหลดระบบบันทึกภาพ กรุณาลองใหม่อีกครั้ง...', 'error');
+          return;
+        }
+
+        const origHTML = screenshotBtn.innerHTML;
+        screenshotBtn.disabled = true;
+        screenshotBtn.innerHTML = '<span>⏳ กำลังจับภาพ...</span>';
+        this.showToast('📸 กำลังประมวลผลบันทึกภาพหน้าจอ...');
+
+        try {
+          await new Promise(r => setTimeout(r, 60));
+
+          const canvas = await html2canvas(captureArea, {
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            scale: 2, // Hi-DPI quality
+            ignoreElements: (el) => {
+              return el.classList && (
+                el.classList.contains('modal-backdrop') ||
+                el.classList.contains('toast-container')
+              );
+            }
+          });
+
+          const now = new Date();
+          const pad = n => String(n).padStart(2, '0');
+          const timeStr = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+          const filename = `ERM_Map_Feed_${timeStr}.png`;
+
+          const link = document.createElement('a');
+          link.download = filename;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+
+          this.showToast(`📸 บันทึกภาพหน้าจอ "${filename}" เรียบร้อยแล้ว`, 'success');
+        } catch (err) {
+          console.error('Screenshot error:', err);
+          this.showToast('⚠️ ไม่สามารถบันทึกภาพหน้าจอได้: ' + (err.message || 'Error'), 'error');
+        } finally {
+          screenshotBtn.disabled = false;
+          screenshotBtn.innerHTML = origHTML;
+        }
+      });
+    }
+
+    // 2. Export / Import JSON
+    const exportBtn = document.getElementById('btn-export-json');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        window.dataStore.exportTimelineJSON();
+        this.showToast('💾 ส่งออกไฟล์ timeline.json เรียบร้อยแล้ว');
+      });
+    }
+
+    const importBtn = document.getElementById('btn-import-json');
+    const importInput = document.getElementById('input-import-json');
+    if (importBtn && importInput) {
+      importBtn.addEventListener('click', () => importInput.click());
+      importInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const count = await window.dataStore.importTimelineJSON(file);
+          this.showToast(`📥 นำเข้าข้อมูลสำเร็จ (${count} รายการ)`);
+        } catch (err) {
+          alert('เกิดข้อผิดพลาดในการนำเข้า: ' + err.message);
+        }
+        importInput.value = '';
+      });
+    }
+
+    // 3. Login Modal & Form
+    const loginToggleBtn = document.getElementById('btn-login-toggle');
+    if (loginToggleBtn) {
+      loginToggleBtn.addEventListener('click', () => {
         if (window.authManager.isAdmin()) {
           window.authManager.logout();
-          this.showToast('ออกจากระบบผู้ดูแลเรียบร้อยแล้ว', 'info');
+          this.showToast('ออกจากระบบผู้ดูแลเรียบร้อยแล้ว');
         } else {
           this.openModal('modal-login');
         }
       });
     }
 
-    // Login Form Submit
     const loginForm = document.getElementById('form-login');
     if (loginForm) {
       loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        const user = document.getElementById('login-username').value;
-        const pass = document.getElementById('login-password').value;
-        const result = window.authManager.login(user, pass);
-        if (result.success) {
+        const u = document.getElementById('login-username').value;
+        const p = document.getElementById('login-password').value;
+        const res = window.authManager.login(u, p);
+        if (res.success) {
           this.closeModal('modal-login');
           loginForm.reset();
-          this.showToast('เข้าสู่ระบบผู้ดูแลระบบสำเร็จ (Admin Mode)', 'success');
+          this.showToast('✅ เข้าสู่ระบบผู้ดูแลสำเร็จ');
         } else {
-          alert(result.message);
+          alert(res.message);
         }
       });
     }
 
-    // 3. Category Filter Tabs
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    filterBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const cat = btn.getAttribute('data-category');
-        window.ermMap.setFilter(cat);
-      });
-    });
-
-    // 4. Add Incident Button
-    const btnAdd = document.getElementById('btn-add-incident');
-    if (btnAdd) {
-      btnAdd.addEventListener('click', () => {
-        this.openCreateModal();
+    // 4. Add Report Button
+    const addReportBtn = document.getElementById('btn-add-report');
+    if (addReportBtn) {
+      addReportBtn.addEventListener('click', () => {
+        this.openNewReportModal();
       });
     }
 
-    // 5. Incident Form Submit (Save / Edit)
-    const incidentForm = document.getElementById('form-incident');
-    if (incidentForm) {
-      incidentForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        this.handleSaveIncident();
-      });
-    }
+    // 5. Location Select Change in Form
+    const locSelect = document.getElementById('report-location-select');
+    const customNameGroup = document.getElementById('group-custom-location-name');
+    const latInput = document.getElementById('report-lat');
+    const lngInput = document.getElementById('report-lng');
 
-    // 6. JSON Export & Import Buttons
-    const btnExportJson = document.getElementById('btn-export-json');
-    if (btnExportJson) {
-      btnExportJson.addEventListener('click', () => {
-        window.dataStore.exportJSON();
-        this.showToast('ดาวน์โหลดไฟล์ incidents.json สำเร็จ (พร้อม commit สู่ Git/Cloudflare)', 'success');
-      });
-    }
-
-    const btnImportJson = document.getElementById('btn-import-json');
-    const inputImportJson = document.getElementById('input-import-json');
-    if (btnImportJson && inputImportJson) {
-      btnImportJson.addEventListener('click', () => {
-        inputImportJson.click();
-      });
-      inputImportJson.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          try {
-            await window.dataStore.importJSON(file);
-            this.showToast('นำเข้าข้อมูล JSON สำเร็จ!', 'success');
-          } catch (err) {
-            alert('เกิดข้อผิดพลาดในการนำเข้าไฟล์: ' + err.message);
+    if (locSelect) {
+      locSelect.addEventListener('change', () => {
+        const val = locSelect.value;
+        if (val === 'custom_new') {
+          if (customNameGroup) customNameGroup.style.display = 'block';
+          if (latInput) { latInput.readOnly = false; latInput.value = ''; }
+          if (lngInput) { lngInput.readOnly = false; lngInput.value = ''; }
+        } else {
+          if (customNameGroup) customNameGroup.style.display = 'none';
+          const loc = window.dataStore.getLocationById(val);
+          if (loc) {
+            if (latInput) { latInput.value = loc.lat.toFixed(6); latInput.readOnly = true; }
+            if (lngInput) { lngInput.value = loc.lng.toFixed(6); lngInput.readOnly = true; }
           }
-          inputImportJson.value = '';
         }
       });
     }
 
-    // 7. Reset View Button
-    const btnResetView = document.getElementById('btn-reset-view');
-    if (btnResetView) {
-      btnResetView.addEventListener('click', () => {
-        window.ermMap.resetView();
-      });
-    }
+    // 6. Image File Picker & Direct Camera Compression (JPG)
+    const imageInput = document.getElementById('report-image-input');
+    const cameraInput = document.getElementById('report-camera-input');
+    const imagePreview = document.getElementById('report-image-preview');
+    const imageClearBtn = document.getElementById('btn-clear-image');
 
-    // 7.1 Font Size Toggle Button
-    const btnToggleFont = document.getElementById('btn-toggle-font-size');
-    if (btnToggleFont) {
-      btnToggleFont.addEventListener('click', () => {
-        const isNowLarge = document.body.classList.toggle('large-text-mode');
-        localStorage.setItem('erm_large_text', isNowLarge);
-        this.updateFontSizeButtonUI(isNowLarge);
-        this.showToast(isNowLarge ? 'เปิดโหมดตัวหนังสือขนาดใหญ่พิเศษ (มองเห็นชัดในมุมมองกว้าง)' : 'เปลี่ยนเป็นขนาดตัวหนังสือปกติ', 'info');
-      });
-    }
-
-    // 7.2 Compact Mode Toggle Button
-    const btnToggleCompact = document.getElementById('btn-toggle-compact-mode');
-    if (btnToggleCompact) {
-      btnToggleCompact.addEventListener('click', () => {
-        const isNowCompact = document.body.classList.toggle('compact-mode');
-        localStorage.setItem('erm_compact_mode', isNowCompact);
-        this.updateCompactModeButtonUI(isNowCompact);
-        this.showToast(isNowCompact ? 'เปิดโหมดป้ายกะทัดรัด (ลดการซ้อนทับ 75%)' : 'เปลี่ยนเป็นโหมดการ์ดเต็ม', 'info');
-      });
-    }
-
-    // 8. Image upload in Incident Form
-    const inputImg = document.getElementById('incident-image');
-    if (inputImg) {
-      inputImg.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          if (file.size > 2 * 1024 * 1024) {
-            alert('ขนาดรูปภาพต้องไม่เกิน 2MB');
-            inputImg.value = '';
-            return;
-          }
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            document.getElementById('incident-image-preview').src = ev.target.result;
-            document.getElementById('incident-image-preview').style.display = 'block';
-            document.getElementById('incident-image-base64').value = ev.target.result;
-          };
-          reader.readAsDataURL(file);
+    const handleImageFile = async (file) => {
+      if (!file) return;
+      try {
+        this.showToast('⏳ กำลังประมวลผลและบีบอัดรูปภาพ JPG...');
+        const jpgDataUrl = await window.imageHelper.processToJPG(file, 1280, 0.82);
+        this.currentBase64Image = jpgDataUrl;
+        if (imagePreview) {
+          imagePreview.src = jpgDataUrl;
+          imagePreview.style.display = 'block';
         }
-      });
-    }
-
-    // 9. Add Metric Row Button in Form
-    const btnAddMetric = document.getElementById('btn-add-metric');
-    if (btnAddMetric) {
-      btnAddMetric.addEventListener('click', () => {
-        this.addMetricRow('', '');
-      });
-    }
-
-    // 10. Close Modal buttons
-    document.querySelectorAll('[data-close-modal]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const modalId = btn.getAttribute('data-close-modal');
-        this.closeModal(modalId);
-      });
-    });
-  }
-
-  openCreateModal(lat = null, lng = null) {
-    if (!window.authManager.isAdmin()) {
-      this.openModal('modal-login');
-      return;
-    }
-
-    this.currentEditingId = null;
-    const form = document.getElementById('form-incident');
-    form.reset();
-
-    document.getElementById('modal-incident-title').textContent = '➕ เพิ่มจุดรายงานสถานการณ์ใหม่';
-    document.getElementById('incident-id').value = '';
-    document.getElementById('incident-image-base64').value = '';
-    document.getElementById('incident-image-preview').style.display = 'none';
-    document.getElementById('metrics-container').innerHTML = '';
-
-    // Set coordinates
-    const defaultCenter = window.ermMap.map.getCenter();
-    document.getElementById('incident-lat').value = (lat !== null ? lat : defaultCenter.lat).toFixed(6);
-    document.getElementById('incident-lng').value = (lng !== null ? lng : defaultCenter.lng).toFixed(6);
-
-    const dirSelect = document.getElementById('incident-direction');
-    if (dirSelect) dirSelect.value = 'top';
-
-    // Default 1 metric row
-    this.addMetricRow('ระดับน้ำ / ค่าตรวจวัด', '');
-
-    this.openModal('modal-incident');
-  }
-
-  openEditModal(id) {
-    const item = window.dataStore.getById(id);
-    if (!item) return;
-
-    this.currentEditingId = id;
-    document.getElementById('modal-incident-title').textContent = '✏️ แก้ไขข้อมูลจุดรายงาน';
-    document.getElementById('incident-id').value = item.id;
-    document.getElementById('incident-category').value = item.category;
-    document.getElementById('incident-title').value = item.title;
-    document.getElementById('incident-short-summary').value = item.shortSummary;
-    document.getElementById('incident-details').value = item.details || '';
-    document.getElementById('incident-reported-by').value = item.reportedBy || '';
-    document.getElementById('incident-lat').value = item.lat;
-    document.getElementById('incident-lng').value = item.lng;
-
-    const dirSelect = document.getElementById('incident-direction');
-    if (dirSelect) dirSelect.value = item.direction || 'top';
-
-    // Status radio
-    const statusRadio = document.querySelector(`input[name="incident-status"][value="${item.status}"]`);
-    if (statusRadio) statusRadio.checked = true;
-
-    // Image
-    const preview = document.getElementById('incident-image-preview');
-    const base64Input = document.getElementById('incident-image-base64');
-    if (item.image) {
-      preview.src = item.image;
-      preview.style.display = 'block';
-      base64Input.value = item.image;
-    } else {
-      preview.style.display = 'none';
-      base64Input.value = '';
-    }
-
-    // Metrics
-    const metricsContainer = document.getElementById('metrics-container');
-    metricsContainer.innerHTML = '';
-    if (item.metrics && item.metrics.length > 0) {
-      item.metrics.forEach(m => this.addMetricRow(m.label, m.value));
-    } else {
-      this.addMetricRow('ค่าตรวจวัด', '');
-    }
-
-    this.openModal('modal-incident');
-  }
-
-  addMetricRow(label = '', value = '') {
-    const container = document.getElementById('metrics-container');
-    const row = document.createElement('div');
-    row.className = 'metric-input-row';
-    row.style.cssText = 'display: flex; gap: 8px; margin-bottom: 6px; align-items: center;';
-    row.innerHTML = `
-      <input type="text" class="form-input metric-label" placeholder="ชื่อค่า (เช่น ระดับน้ำ)" value="${window.ermMap.escapeHtml(label)}" style="flex: 1;">
-      <input type="text" class="form-input metric-value" placeholder="ค่าที่วัดได้ (เช่น +1.50 ม.)" value="${window.ermMap.escapeHtml(value)}" style="flex: 1;">
-      <button type="button" class="btn btn-ghost btn-remove-metric" style="color: var(--color-critical); padding: 4px 8px;">✕</button>
-    `;
-    row.querySelector('.btn-remove-metric').addEventListener('click', () => row.remove());
-    container.appendChild(row);
-  }
-
-  handleSaveIncident() {
-    const id = document.getElementById('incident-id').value;
-    const category = document.getElementById('incident-category').value;
-    const title = document.getElementById('incident-title').value.trim();
-    const shortSummary = document.getElementById('incident-short-summary').value.trim();
-    const details = document.getElementById('incident-details').value.trim();
-    const reportedBy = document.getElementById('incident-reported-by').value.trim();
-    const lat = parseFloat(document.getElementById('incident-lat').value);
-    const lng = parseFloat(document.getElementById('incident-lng').value);
-    const statusRadio = document.querySelector('input[name="incident-status"]:checked');
-    const status = statusRadio ? statusRadio.value : 'normal';
-    const dirSelect = document.getElementById('incident-direction');
-    const direction = dirSelect ? dirSelect.value : 'top';
-    const image = document.getElementById('incident-image-base64').value;
-
-    if (!title) {
-      alert('กรุณากรอกชื่อจุด');
-      return;
-    }
-    if (!shortSummary) {
-      alert('กรุณากรอกข้อความสรุปสั้นๆ ที่จะแสดงบนแผนที่ทันที');
-      return;
-    }
-    if (isNaN(lat) || isNaN(lng)) {
-      alert('พิกัด ละติจูด / ลองจิจูด ไม่ถูกต้อง');
-      return;
-    }
-
-    // Collect metrics
-    const metrics = [];
-    document.querySelectorAll('.metric-input-row').forEach(row => {
-      const lbl = row.querySelector('.metric-label').value.trim();
-      const val = row.querySelector('.metric-value').value.trim();
-      if (lbl || val) {
-        metrics.push({ label: lbl, value: val });
+        if (imageClearBtn) imageClearBtn.style.display = 'inline-block';
+        this.showToast('📸 ภาพ JPG พร้อมแนบแล้ว');
+      } catch (err) {
+        alert('ข้อผิดพลาดเกี่ยวกับรูปภาพ: ' + err.message);
+        if (imageInput) imageInput.value = '';
+        if (cameraInput) cameraInput.value = '';
       }
-    });
-
-    const incidentData = {
-      category,
-      title,
-      shortSummary,
-      direction,
-      status,
-      lat,
-      lng,
-      details,
-      metrics,
-      reportedBy,
-      image
     };
 
-    if (id) {
-      incidentData.id = id;
+    if (imageInput) {
+      imageInput.addEventListener('change', (e) => handleImageFile(e.target.files[0]));
+    }
+    if (cameraInput) {
+      cameraInput.addEventListener('change', (e) => handleImageFile(e.target.files[0]));
     }
 
-    const saved = window.dataStore.save(incidentData);
-    this.closeModal('modal-incident');
-    this.showToast(`บันทึกข้อมูล "${title}" เรียบร้อยแล้ว`, 'success');
-
-    // Pan to marker
-    const targetId = (saved && saved.id) ? saved.id : id;
-    if (targetId) {
-      window.ermMap.flyToIncident(targetId);
-    }
-  }
-
-  showIncidentDetail(id) {
-    const item = window.dataStore.getById(id);
-    if (!item) return;
-
-    const modal = document.getElementById('modal-detail');
-    const titleEl = document.getElementById('detail-title');
-    const categoryEl = document.getElementById('detail-category');
-    const statusEl = document.getElementById('detail-status');
-    const summaryEl = document.getElementById('detail-short-summary');
-    const detailsEl = document.getElementById('detail-desc');
-    const metaContainer = document.getElementById('detail-meta-container');
-    const metricsList = document.getElementById('detail-metrics-list');
-    const imageContainer = document.getElementById('detail-image-container');
-    const actionBtns = document.getElementById('detail-admin-actions');
-
-    const catMeta = window.ermMap.categoryLabels[item.category] || { name: 'เหตุการณ์', icon: '📍', class: 'cat-facility' };
-    const statusMeta = window.ermMap.statusLabels[item.status] || { name: 'ปกติ', class: 'status-normal' };
-
-    titleEl.textContent = item.title;
-    categoryEl.innerHTML = `<span class="callout-category-badge ${catMeta.class}">${catMeta.icon} ${catMeta.name}</span>`;
-    statusEl.innerHTML = `<span class="callout-status-pill ${statusMeta.class}"><span class="status-dot ${item.status}"></span> ${statusMeta.name}</span>`;
-    summaryEl.textContent = item.shortSummary;
-    detailsEl.textContent = item.details || 'ไม่มีรายละเอียดเพิ่มเติม';
-
-    metaContainer.innerHTML = `
-      <div class="meta-item">
-        <span class="meta-item-label">พิกัดทางภูมิศาสตร์</span>
-        <span class="meta-item-value">${item.lat.toFixed(5)}, ${item.lng.toFixed(5)}</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-item-label">ผู้รายงาน / หน่วยงาน</span>
-        <span class="meta-item-value">${item.reportedBy || 'ไม่ระบุ'}</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-item-label">อัปเดตล่าสุด</span>
-        <span class="meta-item-value">${item.updatedAt || '-'}</span>
-      </div>
-      <div class="meta-item">
-        <span class="meta-item-label">รหัสอ้างอิง</span>
-        <span class="meta-item-value" style="font-family: monospace; font-size: 0.75rem;">${item.id}</span>
-      </div>
-    `;
-
-    // Metrics
-    metricsList.innerHTML = '';
-    if (item.metrics && item.metrics.length > 0) {
-      item.metrics.forEach(m => {
-        const row = document.createElement('div');
-        row.className = 'metric-row';
-        row.innerHTML = `
-          <span class="metric-row-label">${window.ermMap.escapeHtml(m.label)}</span>
-          <span class="metric-row-value">${window.ermMap.escapeHtml(m.value)}</span>
-        `;
-        metricsList.appendChild(row);
+    if (imageClearBtn) {
+      imageClearBtn.addEventListener('click', () => {
+        this.currentBase64Image = '';
+        if (imageInput) imageInput.value = '';
+        if (cameraInput) cameraInput.value = '';
+        if (imagePreview) {
+          imagePreview.src = '';
+          imagePreview.style.display = 'none';
+        }
+        imageClearBtn.style.display = 'none';
       });
-      document.getElementById('detail-metrics-section').style.display = 'block';
-    } else {
-      document.getElementById('detail-metrics-section').style.display = 'none';
     }
 
-    // Image
-    if (item.image) {
-      imageContainer.innerHTML = `<img src="${item.image}" alt="รูปภาพประกอบ" style="width: 100%; max-height: 250px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color);">`;
-      imageContainer.style.display = 'block';
-    } else {
-      imageContainer.innerHTML = '';
-      imageContainer.style.display = 'none';
-    }
-
-    // Admin buttons (Edit & Delete)
-    const isAdmin = window.authManager.isAdmin();
-    if (isAdmin) {
-      actionBtns.innerHTML = `
-        <button class="btn btn-outline" id="btn-detail-edit" style="color: #38bdf8;">✏️ แก้ไขข้อมูล</button>
-        <button class="btn btn-outline" id="btn-detail-delete" style="color: var(--color-critical);">🗑️ ลบจุดนี้</button>
-      `;
-      document.getElementById('btn-detail-edit').addEventListener('click', () => {
-        this.closeModal('modal-detail');
-        this.openEditModal(item.id);
+    // 7. Form Report Submission
+    const reportForm = document.getElementById('form-report');
+    if (reportForm) {
+      reportForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.handleReportSubmit();
       });
-      document.getElementById('btn-detail-delete').addEventListener('click', () => {
-        if (confirm(`คุณต้องการลบจุด "${item.title}" ใช่หรือไม่?`)) {
-          this.closeModal('modal-detail');
-          window.dataStore.delete(item.id);
-          this.showToast(`ลบจุด "${item.title}" เรียบร้อยแล้ว`, 'warning');
+    }
+
+    // 8. Feed Search and Filter Controls
+    const searchInput = document.getElementById('feed-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        window.timelineController.searchQuery = e.target.value;
+        window.timelineController.renderFeed();
+      });
+    }
+
+    const filterSelect = document.getElementById('feed-filter-status');
+    if (filterSelect) {
+      filterSelect.addEventListener('change', (e) => {
+        window.timelineController.filterStatus = e.target.value;
+        window.timelineController.renderFeed();
+      });
+    }
+
+    // 9. Generic Modal Close buttons (data-close-modal="modalId")
+    document.querySelectorAll('[data-close-modal]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetModalId = btn.getAttribute('data-close-modal');
+        this.closeModal(targetModalId);
+      });
+    });
+
+    // Close modal on backdrop click
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) {
+          this.closeModal(backdrop.id);
         }
       });
-      actionBtns.style.display = 'flex';
-    } else {
-      actionBtns.innerHTML = '';
-      actionBtns.style.display = 'none';
+    });
+
+    // 10. Mobile GPS Detection, Fast Presets & Navigation Tabs
+    this.setupGPSDetection();
+    this.setupQuickPresets();
+    this.setupMobileNavigation();
+  }
+
+  setupGPSDetection() {
+    const gpsBtn = document.getElementById('btn-gps-detect');
+    const badge = document.getElementById('gps-status-badge');
+    const locSelect = document.getElementById('report-location-select');
+    const latInput = document.getElementById('report-lat');
+    const lngInput = document.getElementById('report-lng');
+
+    if (!gpsBtn) return;
+
+    gpsBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        if (badge) {
+          badge.className = 'gps-error';
+          badge.textContent = '⚠️ อุปกรณ์ของคุณไม่รองรับการตรวจหาพิกัด GPS';
+          badge.style.display = 'flex';
+        }
+        return;
+      }
+
+      if (badge) {
+        badge.className = 'gps-loading';
+        badge.textContent = '📡 กำลังค้นหาตำแหน่งพิกัด GPS ของอุปกรณ์...';
+        badge.style.display = 'flex';
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const userLat = pos.coords.latitude;
+          const userLng = pos.coords.longitude;
+          const accuracy = Math.round(pos.coords.accuracy || 0);
+
+          const allLocs = window.dataStore.getAllLocations();
+          let closest = null;
+          let minDist = Infinity;
+
+          allLocs.forEach(loc => {
+            const dist = this.getDistanceKm(userLat, userLng, loc.lat, loc.lng);
+            if (dist < minDist) {
+              minDist = dist;
+              closest = loc;
+            }
+          });
+
+          // หากอยู่ใกล้จุดมาตรฐานในระยะ 800 เมตร ให้เลือกจุดนั้นอัตโนมัติ
+          if (closest && minDist <= 0.8) {
+            if (locSelect) {
+              locSelect.value = closest.id;
+              locSelect.dispatchEvent(new Event('change'));
+            }
+            if (badge) {
+              badge.className = '';
+              badge.textContent = `📍 ตำแหน่งใกล้ที่สุด: "${closest.name}" (ห่างประมาณ ${Math.round(minDist * 1000)} ม., ความแม่นยำ ±${accuracy} ม.)`;
+              badge.style.display = 'flex';
+            }
+            this.showToast(`🎯 ตรวจพบตำแหน่ง: ${closest.name}`);
+          } else {
+            // เลือกโหมดจุดใหม่ พร้อมใส่พิกัด GPS ให้ทันที
+            if (locSelect) {
+              locSelect.value = 'custom_new';
+              locSelect.dispatchEvent(new Event('change'));
+            }
+            if (latInput) latInput.value = userLat.toFixed(6);
+            if (lngInput) lngInput.value = userLng.toFixed(6);
+            if (badge) {
+              badge.className = '';
+              badge.textContent = `📍 พิกัดปัจจุบัน: ${userLat.toFixed(6)}, ${userLng.toFixed(6)} (ความแม่นยำ ±${accuracy} ม.)`;
+              badge.style.display = 'flex';
+            }
+            this.showToast('📍 บันทึกพิกัด GPS ปัจจุบันเรียบร้อย');
+          }
+        },
+        (err) => {
+          console.warn('GPS Error:', err);
+          let msg = 'ไม่สามารถดึงตำแหน่งพิกัดได้';
+          if (err.code === 1) msg = 'กรุณากด "อนุญาต (Allow)" การเข้าถึงตำแหน่งในเบราว์เซอร์';
+          else if (err.code === 2) msg = 'สัญญาณ GPS ออฟไลน์ หรืออยู่นอกพื้นที่รับสัญญาณ';
+          else if (err.code === 3) msg = 'หมดเวลาค้นหาพิกัด GPS กรุณาลองใหม่อีกครั้ง';
+          if (badge) {
+            badge.className = 'gps-error';
+            badge.textContent = '⚠️ ' + msg;
+            badge.style.display = 'flex';
+          }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+      );
+    });
+  }
+
+  getDistanceKm(lat1, lon1, lat2, lon2) {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  setupQuickPresets() {
+    const container = document.getElementById('quick-preset-chips');
+    const summaryInput = document.getElementById('report-summary');
+    if (!container || !summaryInput) return;
+
+    container.addEventListener('click', (e) => {
+      const chip = e.target.closest('.preset-chip');
+      if (!chip) return;
+      const text = chip.getAttribute('data-text') || '';
+      summaryInput.value = text;
+
+      // Auto check matching status radio
+      if (text.includes('ปกติ') || chip.textContent.includes('🟢')) {
+        const rad = document.getElementById('st-opt-normal');
+        if (rad) rad.checked = true;
+      } else if (text.includes('เฝ้าระวัง') || text.includes('รอระบาย') || text.includes('หนุนสูง') || chip.textContent.includes('🟡')) {
+        const rad = document.getElementById('st-opt-warning');
+        if (rad) rad.checked = true;
+      } else if (text.includes('วิกฤต') || chip.textContent.includes('🔴')) {
+        const rad = document.getElementById('st-opt-critical');
+        if (rad) rad.checked = true;
+      }
+
+      this.showToast(`⚡ เลือกสรุป: "${text}"`);
+    });
+  }
+
+  setupMobileNavigation() {
+    const tabMap = document.getElementById('btn-mobile-tab-map');
+    const tabFeed = document.getElementById('btn-mobile-tab-feed');
+    const fabAdd = document.getElementById('btn-mobile-fab-add');
+    const mainLayout = document.getElementById('main-capture-area');
+
+    if (tabMap && tabFeed && mainLayout) {
+      tabMap.addEventListener('click', () => {
+        tabMap.classList.add('active');
+        tabFeed.classList.remove('active');
+        mainLayout.classList.remove('mobile-view-feed');
+        mainLayout.classList.add('mobile-view-map');
+        if (window.mapController && window.mapController.map) {
+          window.mapController.map.invalidateSize();
+          window.mapController.scheduleLayoutUpdate();
+          setTimeout(() => {
+            if (window.mapController && window.mapController.map) {
+              window.mapController.map.invalidateSize();
+              window.mapController.scheduleLayoutUpdate();
+            }
+          }, 150);
+        }
+      });
+
+      tabFeed.addEventListener('click', () => {
+        tabFeed.classList.add('active');
+        tabMap.classList.remove('active');
+        mainLayout.classList.remove('mobile-view-map');
+        mainLayout.classList.add('mobile-view-feed');
+      });
     }
 
-    this.openModal('modal-detail');
+    if (fabAdd) {
+      fabAdd.addEventListener('click', () => {
+        if (window.authManager && window.authManager.isAdmin()) {
+          this.openNewReportModal();
+        } else {
+          this.showToast('🔐 กรุณาเข้าสู่ระบบ Admin เพื่อบันทึกรายงาน');
+          this.openModal('modal-login');
+        }
+      });
+    }
   }
 
   openModal(modalId) {
     const el = document.getElementById(modalId);
-    if (el) el.classList.add('open');
+    if (el) {
+      el.classList.add('active');
+    }
   }
 
   closeModal(modalId) {
     const el = document.getElementById(modalId);
-    if (el) el.classList.remove('open');
+    if (el) {
+      el.classList.remove('active');
+    }
+  }
+
+  openLocationTimeline(locationId) {
+    window.timelineController.renderLocationTimeline(locationId);
+    this.openModal('modal-timeline');
+  }
+
+  openNewReportModal() {
+    const form = document.getElementById('form-report');
+    if (form) form.reset();
+
+    // Reset GPS badge
+    const gpsBadge = document.getElementById('gps-status-badge');
+    if (gpsBadge) {
+      gpsBadge.style.display = 'none';
+      gpsBadge.className = '';
+      gpsBadge.textContent = '';
+    }
+
+    // Populate reporter name from cache
+    const reporterInput = document.getElementById('report-reporter-name');
+    if (reporterInput) {
+      reporterInput.value = window.authManager.getLastReporterName();
+    }
+
+    // Populate IP
+    const ipInput = document.getElementById('report-user-ip');
+    if (ipInput) {
+      ipInput.value = this.clientIP;
+    }
+
+    // Clear image
+    this.currentBase64Image = '';
+    const imgPreview = document.getElementById('report-image-preview');
+    const imgClear = document.getElementById('btn-clear-image');
+    if (imgPreview) imgPreview.style.display = 'none';
+    if (imgClear) imgClear.style.display = 'none';
+
+    // Hide custom location name
+    const customGroup = document.getElementById('group-custom-location-name');
+    if (customGroup) customGroup.style.display = 'none';
+
+    this.openModal('modal-new-report');
+  }
+
+  openNewReportModalForLocation(loc) {
+    this.openNewReportModal();
+    const locSelect = document.getElementById('report-location-select');
+    if (locSelect) {
+      locSelect.value = loc.id;
+      locSelect.dispatchEvent(new Event('change'));
+    }
+  }
+
+  openNewReportModalForCustomPoint(lat, lng) {
+    this.openNewReportModal();
+    const locSelect = document.getElementById('report-location-select');
+    const customGroup = document.getElementById('group-custom-location-name');
+    const latInput = document.getElementById('report-lat');
+    const lngInput = document.getElementById('report-lng');
+
+    if (locSelect) locSelect.value = 'custom_new';
+    if (customGroup) customGroup.style.display = 'block';
+    if (latInput) { latInput.value = lat.toFixed(6); latInput.readOnly = false; }
+    if (lngInput) { lngInput.value = lng.toFixed(6); lngInput.readOnly = false; }
+  }
+
+  handleReportSubmit() {
+    const locSelect = document.getElementById('report-location-select');
+    const locVal = locSelect ? locSelect.value : '';
+    const customNameInput = document.getElementById('report-custom-name');
+    const latInput = document.getElementById('report-lat');
+    const lngInput = document.getElementById('report-lng');
+    const reporterInput = document.getElementById('report-reporter-name');
+    const shortSummaryInput = document.getElementById('report-summary');
+    const descInput = document.getElementById('report-desc');
+    const statusRadio = document.querySelector('input[name="report-status"]:checked');
+
+    if (!locVal) {
+      alert('กรุณาเลือกตำแหน่ง');
+      return;
+    }
+
+    const reporterName = reporterInput ? reporterInput.value.trim() : '';
+    if (!reporterName) {
+      alert('กรุณาระบุชื่อผู้รายงาน');
+      return;
+    }
+    // Remember reporter name
+    window.authManager.saveLastReporterName(reporterName);
+
+    let locationId = locVal;
+    let locationName = '';
+    let lat = parseFloat(latInput.value);
+    let lng = parseFloat(lngInput.value);
+
+    if (locVal === 'custom_new') {
+      const customName = customNameInput ? customNameInput.value.trim() : '';
+      if (!customName) {
+        alert('กรุณาระบุชื่อสถานที่สำหรับจุดใหม่');
+        return;
+      }
+      if (isNaN(lat) || isNaN(lng)) {
+        alert('กรุณาระบุพิกัด ละติจูด / ลองจิจูด ให้ถูกต้อง');
+        return;
+      }
+
+      // Add custom location to data store
+      const newLoc = window.dataStore.addCustomLocation(customName, lat, lng);
+      locationId = newLoc.id;
+      locationName = newLoc.name;
+    } else {
+      const loc = window.dataStore.getLocationById(locVal);
+      if (loc) {
+        locationName = loc.name;
+        lat = loc.lat;
+        lng = loc.lng;
+      }
+    }
+
+    const newEntry = {
+      locationId,
+      locationName,
+      lat,
+      lng,
+      status: statusRadio ? statusRadio.value : 'normal',
+      shortSummary: shortSummaryInput ? shortSummaryInput.value.trim() : '',
+      description: descInput ? descInput.value.trim() : '',
+      reportedBy: reporterName,
+      ipAddress: this.clientIP,
+      timestamp: new Date().toISOString(),
+      image: this.currentBase64Image
+    };
+
+    window.dataStore.addTimelineEntry(newEntry);
+    this.closeModal('modal-new-report');
+    this.showToast('✅ บันทึกข้อมูลเข้าไทม์ไลน์เรียบร้อยแล้ว');
+
+    // If modal-timeline was open, refresh it
+    if (window.timelineController.currentLocationId === locationId) {
+      window.timelineController.renderLocationTimeline(locationId);
+    }
+  }
+
+  deleteEntry(entryId) {
+    if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรายการบันทึกนี้?')) {
+      window.dataStore.deleteTimelineEntry(entryId);
+      this.showToast('🗑️ ลบรายการเรียบร้อยแล้ว');
+    }
+  }
+
+  openLightbox(imageSrc) {
+    const modal = document.getElementById('modal-lightbox');
+    const imgEl = document.getElementById('lightbox-image');
+    if (modal && imgEl) {
+      imgEl.src = imageSrc;
+      this.openModal('modal-lightbox');
+    }
   }
 
   showToast(message, type = 'info') {
@@ -581,28 +803,22 @@ class ERMApplication {
     if (!container) return;
 
     const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    let icon = 'ℹ️';
-    if (type === 'success') icon = '✅';
-    if (type === 'warning') icon = '⚠️';
-    if (type === 'error') icon = '❌';
-
-    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
     container.appendChild(toast);
 
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateX(100%)';
+      toast.style.transform = 'translateY(10px)';
       toast.style.transition = 'all 0.3s ease';
       setTimeout(() => toast.remove(), 300);
     }, 3500);
   }
 }
 
-// Global instance
-window.app = new ERMApplication();
+window.appController = new ApplicationControllerV2();
 
-// DOM Ready
+// Initialize on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-  window.app.init();
+  window.appController.init();
 });
