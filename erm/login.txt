@@ -1,0 +1,251 @@
+<?php
+// ต้อง set cookie ก่อน session_start เพื่อให้ session ใช้ได้ทุก path ใน host เดียวกัน
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => $isHttps,
+    'httponly' => true,
+    'samesite' => 'Lax',
+]);
+
+session_start();
+
+function h($s) {
+    return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
+}
+
+function ldap_filter_escape_safe($value) {
+    if (function_exists('ldap_escape')) {
+        return ldap_escape($value, '', LDAP_ESCAPE_FILTER);
+    }
+
+    // fallback สำหรับ PHP เก่าที่ไม่มี ldap_escape
+    return str_replace(
+        ['\\', '*', '(', ')', "\x00"],
+        ['\\5c', '\\2a', '\\28', '\\29', '\\00'],
+        $value
+    );
+}
+
+function safe_page($page) {
+    $page = trim((string)$page);
+
+    // รองรับระบบเก่า เช่น login.php?page=ptc_adj
+    if ($page !== '' && preg_match('/^[a-zA-Z0-9_-]+$/', $page)) {
+        return $page;
+    }
+
+    return '';
+}
+
+function get_current_origin() {
+    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    $scheme = $isHttps ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    return $scheme . '://' . $host;
+}
+
+function safe_return_url($url) {
+    $url = trim((string)$url);
+
+    if ($url === '') {
+        return '';
+    }
+
+    // กัน header injection
+    if (preg_match('/[\r\n]/', $url)) {
+        return '';
+    }
+
+    $currentHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
+    $currentHostNoPort = strtolower(explode(':', $currentHost)[0]);
+
+    // อนุญาตเฉพาะ host/IP ของระบบเรา
+    // สำคัญ: ถ้าอยากให้ session ตามไปด้วย ควรเป็น host/IP เดียวกับ login.php
+    $allowedHosts = array_values(array_unique([
+        $currentHost,
+        $currentHostNoPort,
+        '172.16.193.162',
+        '172.16.193.161',
+        '172.16.193.34',
+        'localhost',
+    ]));
+
+    // รองรับ relative path เช่น /ptc_adj.php หรือ /smartmap/station/ptc.php?st=PK
+    if (strpos($url, '/') === 0 && strpos($url, '//') !== 0) {
+        return get_current_origin() . $url;
+    }
+
+    $parts = parse_url($url);
+
+    if (!$parts || empty($parts['scheme']) || empty($parts['host'])) {
+        return '';
+    }
+
+    $scheme = strtolower($parts['scheme']);
+    $host = strtolower($parts['host']);
+
+    if (!in_array($scheme, ['http', 'https'], true)) {
+        return '';
+    }
+
+    if (!in_array($host, $allowedHosts, true)) {
+        return '';
+    }
+
+    return $url;
+}
+
+function fallback_url_from_page($page) {
+    $page = safe_page($page);
+
+    if ($page === 'path') {
+        return './wbl/path.php';
+    }
+
+    if ($page === 'ptc_adj') {
+        return './ptc_adj.php';
+    }
+
+    if ($page !== '') {
+        return './wbl/' . rawurlencode($page) . '.php';
+    }
+
+    return 'index.php';
+}
+
+$page = safe_page($_REQUEST['page'] ?? '');
+$returnUrl = safe_return_url($_REQUEST['return_url'] ?? '');
+
+if ($returnUrl === '') {
+    $returnUrl = fallback_url_from_page($page);
+}
+
+$msg = '';
+
+// ถ้า login อยู่แล้ว และยังไม่หมดอายุ ให้กลับไปหน้าที่เรียกมาได้เลย
+if (
+    $_SERVER['REQUEST_METHOD'] !== 'POST'
+    && !empty($_SESSION['user'])
+    && (int)($_SESSION['expire'] ?? 0) >= time()
+    && $returnUrl !== ''
+) {
+    header('Location: ' . $returnUrl);
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username'] ?? '');
+    $password = (string)($_POST['password'] ?? '');
+
+    $page = safe_page($_POST['page'] ?? $page);
+    $returnUrl = safe_return_url($_POST['return_url'] ?? '');
+
+    if ($returnUrl === '') {
+        $returnUrl = fallback_url_from_page($page);
+    }
+
+    if ($username === '' || $password === '') {
+        $msg = 'กรุณากรอก Username และ Password';
+    } else {
+        $adServer = 'water.mwa';
+
+        $ldap = @ldap_connect($adServer);
+
+        if (!$ldap) {
+            $msg = 'ไม่สามารถเชื่อมต่อระบบ AD ได้';
+        } else {
+            ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
+            ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
+
+            $ldaprdn = $username . '@water.mwa';
+            $bind = @ldap_bind($ldap, $ldaprdn, $password);
+
+            if ($bind) {
+                $safeUsername = ldap_filter_escape_safe($username);
+                $filter = "(sAMAccountName={$safeUsername})";
+
+                $result = @ldap_search(
+                    $ldap,
+                    'dc=water,dc=mwa',
+                    $filter,
+                    ['cn', 'department', 'samaccountname']
+                );
+
+                if ($result) {
+                    $info = @ldap_get_entries($ldap, $result);
+
+                    if ($info && isset($info['count']) && $info['count'] > 0) {
+                        session_regenerate_id(true);
+
+                        $_SESSION['user'] = $info[0]['cn'][0] ?? $username;
+                        $_SESSION['dept'] = $info[0]['department'][0] ?? '';
+                        $_SESSION['expire'] = time() + (480 * 60);
+
+                        @ldap_close($ldap);
+
+                        header('Location: ' . $returnUrl);
+                        exit;
+                    } else {
+                        $msg = 'ไม่พบข้อมูลผู้ใช้ในระบบ AD';
+                    }
+                } else {
+                    $msg = 'ไม่สามารถค้นหาข้อมูลผู้ใช้ได้';
+                }
+
+                @ldap_close($ldap);
+            } else {
+                @ldap_close($ldap);
+                $msg = 'Username หรือ Password ไม่ถูกต้อง';
+            }
+        }
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Form</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="login">
+    <div class="login-screen">
+        <div class="app-title">
+            <h1>ใช้รหัส AD เพื่อเข้าระบบ</h1>
+        </div>
+
+        <div class="login-form">
+            <?php if ($msg !== ''): ?>
+                <div style="color:#c00; margin-bottom:12px;">
+                    <?= h($msg) ?>
+                </div>
+            <?php endif; ?>
+
+            <form action="" method="POST" autocomplete="off">
+                <input type="hidden" name="page" value="<?= h($page) ?>">
+                <input type="hidden" name="return_url" value="<?= h($returnUrl) ?>">
+
+                <div class="control-group">
+                    <label class="login-field-icon fui-user" for="username">Username</label>
+                    <input id="username" type="text" name="username" value="" autocomplete="username">
+                    <br>
+                </div>
+
+                <div class="control-group">
+                    <label class="login-field-icon fui-lock" for="password">Password</label>
+                    <input id="password" type="password" name="password" autocomplete="current-password">
+                </div>
+
+                <input type="submit" name="submit" value="Login">
+            </form>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

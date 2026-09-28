@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบรายงานสถานะและเฝ้าระวังเหตุการณ์ (ERM v2) - ไดอารีไทม์ไลน์ดาวเทียม</title>
+
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- ERM v2 Stylesheet -->
+  <link rel="stylesheet" href="css/v2-style.css">
+</head>
+<body>
+
+  <!-- =======================================================
+       HEADER SECTION
+       ======================================================= -->
+  <header class="app-header">
+    <!-- Brand Title -->
+    <div class="brand-section">
+      <div class="brand-icon">🛰️</div>
+      <div class="brand-title-wrap">
+        <div class="brand-title">
+          ระบบรายงานสถานะและเฝ้าระวังเหตุการณ์
+          <span class="badge-v2">v2 TIMELINE</span>
+        </div>
+        <div class="brand-subtitle">
+          แผนที่ดาวเทียมความละเอียดสูง • ไดอารีไทม์ไลน์บันทึกสถานการณ์ • จุดตรวจการณ์มาตรฐาน 17 จุด
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI Summary Counters -->
+    <div class="header-kpi-bar">
+      <div class="kpi-pill">
+        <span>จุดทั้งหมด:</span>
+        <strong id="kpi-total-points">0</strong>
+      </div>
+      <div class="kpi-sep"></div>
+      <div class="kpi-pill normal">
+        <span>🟢 ปกติ:</span>
+        <strong id="kpi-normal-count">0</strong>
+      </div>
+      <div class="kpi-sep"></div>
+      <div class="kpi-pill warning">
+        <span>🟡 เฝ้าระวัง:</span>
+        <strong id="kpi-warning-count">0</strong>
+      </div>
+      <div class="kpi-sep"></div>
+      <div class="kpi-pill critical">
+        <span>🔴 วิกฤต:</span>
+        <strong id="kpi-critical-count">0</strong>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <!-- Back to v1 Link -->
+      <a href="../v1.html" class="btn btn-outline" title="สลับกลับไปใช้งานระบบเวอร์ชัน 1">
+        <span>⬅️ ระบบเดิม (v1)</span>
+      </a>
+
+      <!-- Add Report (Admin only) -->
+      <button class="btn btn-primary" id="btn-add-report" style="display: none;">
+        <span>➕</span>
+        <span>รายงานเหตุการณ์ใหม่</span>
+      </button>
+
+
+      <!-- Quick Location Jump Dropdown -->
+      <select id="quick-jump-select" class="btn btn-outline" style="padding: 6px 10px; font-size: 0.8rem; cursor: pointer;">
+        <option value="">🎯 ไปยังตำแหน่ง (17 จุด)...</option>
+      </select>
+
+      <!-- Fit All Bounds Button -->
+      <button class="btn btn-outline" id="btn-fit-bounds" title="ปรับมุมมองให้ครอบคลุมทุกจุด (รวมจุดรับน้ำดิบท่าม่วง และ รส.บางเลน)">
+        <span>🗺️ ดูทุกจุด</span>
+      </button>
+
+      <!-- Center Map View -->
+      <button class="btn btn-ghost" id="btn-reset-view" title="ปรับมุมมองกลับมาที่พื้นที่โรงงานผลิตน้ำมหาสวัสดิ์">
+        <span>🎯 โรงงานมหาสวัสดิ์</span>
+      </button>
+
+      <!-- Screenshot Capture Button (เฉพาะข้อมูลบนแผนที่ และ ข้อมูลด้านข้าง) -->
+      <button class="btn btn-screenshot" id="btn-save-screenshot" title="บันทึกภาพหน้าจอเฉพาะข้อมูลบนแผนที่และข้อมูลฟีดด้านข้าง">
+        <span>📸 บันทึกภาพหน้าจอ</span>
+      </button>
+
+      <!-- Login Button -->
+      <button class="btn btn-admin" id="btn-login-toggle">
+        <span>🔐 เข้าสู่ระบบ (Admin)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- =======================================================
+       MAIN LAYOUT: SPLIT SCREEN (MAP LEFT, FEED RIGHT)
+       ======================================================= -->
+  <main class="main-layout mobile-view-map" id="main-capture-area">
+    <!-- Left: Satellite Map Section -->
+    <section class="map-section">
+      <div id="map"></div>
+
+      <!-- Admin Mode Banner -->
+      <div class="admin-hint-bar" id="admin-hint-bar">
+        <span>⚙️ <strong>โหมดผู้ดูแลระบบ:</strong> คลิกบนแผนที่เพื่อปักหมุดจุดใหม่ หรือเพิ่มบันทึกเหตุการณ์</span>
+      </div>
+
+      <!-- Map Overlay Legend -->
+      <div class="map-badge-legend">
+        <div class="legend-header">
+          <span>คำอธิบายสัญลักษณ์</span>
+          <span style="font-size: 0.65rem; color: #38bdf8;">คลิกหมุดเพื่อเปิดไดอารี</span>
+        </div>
+        <div class="legend-row">
+          <span class="dot-status normal"></span>
+          <span><strong>ปกติ:</strong> สัญจรได้ / คุณภาพน้ำตามเกณฑ์</span>
+        </div>
+        <div class="legend-row">
+          <span class="dot-status warning"></span>
+          <span><strong>เฝ้าระวัง:</strong> น้ำหนุน / น้ำท่วมขังรอระบาย</span>
+        </div>
+        <div class="legend-row">
+          <span class="dot-status critical"></span>
+          <span><strong>วิกฤต:</strong> สัญจรไม่ได้ / มีเหตุด่วน</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Live Activity Feed Sidebar -->
+    <aside class="feed-sidebar">
+      <div class="feed-header">
+        <div class="feed-header-top">
+          <div class="feed-title">
+            <span>📡 การอัปเดตล่าสุด</span>
+            <span class="feed-count-badge" id="feed-count">0 รายการ</span>
+          </div>
+          <div style="font-size: 0.7rem; color: var(--text-muted);" id="live-clock">
+            กำลังโหลดเวลา...
+          </div>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="feed-filter-bar">
+          <input type="text" id="feed-search-input" class="feed-search-input" placeholder="🔍 ค้นหาชื่อจุด, ข้อความ, ผู้รายงาน...">
+          <select id="feed-filter-status" class="feed-filter-select">
+            <option value="all">ทุกสถานะ</option>
+            <option value="normal">🟢 ปกติ</option>
+            <option value="warning">🟡 เฝ้าระวัง</option>
+            <option value="critical">🔴 วิกฤต</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Live Feed Items Container -->
+      <div class="feed-list" id="feed-list">
+        <!-- Rendered dynamically by timeline.js -->
+      </div>
+    </aside>
+  </main>
+
+  <!-- =======================================================
+       MODAL 1: ADMIN LOGIN (admin / admin)
+       ======================================================= -->
+  <div class="modal-backdrop" id="modal-login">
+    <div class="modal-box" style="max-width: 380px;">
+      <div class="modal-header">
+        <div class="modal-title">🔐 เข้าสู่ระบบผู้ดูแล (Admin)</div>
+        <button class="modal-close" data-close-modal="modal-login">&times;</button>
+      </div>
+      <form id="form-login">
+        <div class="modal-body">
+          <div style="font-size: 0.8rem; color: var(--text-secondary); background: #f0f9ff; border: 1px solid #bae6fd; padding: 8px 12px; border-radius: 6px;">
+            ℹ️ สำหรับเจ้าหน้าที่ปักหมุดและบันทึกข้อมูล<br>
+            <strong>ชื่อผู้ใช้:</strong> <code>admin</code> | <strong>รหัสผ่าน:</strong> <code>admin</code>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-username">ชื่อผู้ใช้ (Username)</label>
+            <input type="text" id="login-username" class="form-input" placeholder="admin" required autofocus>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="login-password">รหัสผ่าน (Password)</label>
+            <input type="password" id="login-password" class="form-input" placeholder="•••••" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" data-close-modal="modal-login">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">เข้าสู่ระบบ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =======================================================
+       MODAL 2: ADD NEW TIMELINE REPORT / PIN POINT
+       ======================================================= -->
+  <div class="modal-backdrop" id="modal-new-report">
+    <div class="modal-box" style="max-width: 640px;">
+      <div class="modal-header">
+        <div class="modal-title">📝 บันทึกรายงานสถานการณ์ใหม่</div>
+        <button class="modal-close" data-close-modal="modal-new-report">&times;</button>
+      </div>
+      <form id="form-report">
+        <div class="modal-body">
+
+          <!-- Location Selection with GPS Detection -->
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+              <label class="form-label" for="report-location-select">เลือกตำแหน่ง <span style="color: #ef4444;">*</span></label>
+              <button type="button" class="btn btn-outline" id="btn-gps-detect" title="ค้นหาตำแหน่งปัจจุบันจาก GPS อัตโนมัติ" style="font-size: 0.76rem; padding: 4px 10px; color: #0284c7; border-color: #bae6fd; background: #f0f9ff; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;">
+                <span>📍</span>
+                <span>ใช้ GPS พิกัดปัจจุบัน</span>
+              </button>
+            </div>
+            <select id="report-location-select" class="form-select" required>
+              <!-- Populated dynamically with 17 standard locations -->
+            </select>
+            <div id="gps-status-badge"></div>
+          </div>
+
+          <!-- Custom Location Name (Conditional) -->
+          <div class="form-group" id="group-custom-location-name" style="display: none;">
+            <label class="form-label" for="report-custom-name">ชื่อสถานที่จุดใหม่ <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="report-custom-name" class="form-input" placeholder="เช่น ทางแยกคลองใหม่ หรือ ประตูระบายน้ำสำรอง">
+          </div>
+
+          <!-- Coordinates (Readonly for standard, editable for custom) -->
+          <div class="form-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label" for="report-lat">ละติจูด (Latitude)</label>
+              <input type="number" step="0.000001" id="report-lat" class="form-input" readonly required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="report-lng">ลองจิจูด (Longitude)</label>
+              <input type="number" step="0.000001" id="report-lng" class="form-input" readonly required>
+            </div>
+          </div>
+
+          <!-- Reporter Name & IP Address -->
+          <div class="form-grid-2col" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px;">
+            <div class="form-group">
+              <label class="form-label" for="report-reporter-name">ชื่อผู้รายงาน <span style="color: #ef4444;">*</span></label>
+              <input type="text" id="report-reporter-name" class="form-input" placeholder="เช่น นายสมชาย หรือ วิศวกรควบคุม" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="report-user-ip">IP Address ผู้รายงาน</label>
+              <input type="text" id="report-user-ip" class="form-input" readonly style="color: #0284c7; font-family: monospace;">
+            </div>
+          </div>
+
+          <!-- Status Level Radio Group -->
+          <div class="form-group">
+            <label class="form-label">ระดับสถานะ <span style="color: #ef4444;">*</span></label>
+            <div class="status-radio-group">
+              <div>
+                <input type="radio" id="st-opt-normal" name="report-status" value="normal" class="status-radio-input" checked>
+                <label for="st-opt-normal" class="status-radio-label opt-normal">🟢 ปกติ</label>
+              </div>
+              <div>
+                <input type="radio" id="st-opt-warning" name="report-status" value="warning" class="status-radio-input">
+                <label for="st-opt-warning" class="status-radio-label opt-warning">🟡 เฝ้าระวัง</label>
+              </div>
+              <div>
+                <input type="radio" id="st-opt-critical" name="report-status" value="critical" class="status-radio-input">
+                <label for="st-opt-critical" class="status-radio-label opt-critical">🔴 วิกฤต</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Short Summary with Fast Mobile Presets -->
+          <div class="form-group">
+            <label class="form-label" for="report-summary">หัวข้อสรุปสถานะสั้นๆ <span style="color: #ef4444;">*</span></label>
+            <input type="text" id="report-summary" class="form-input" placeholder="พิมพ์สรุป หรือแตะข้อความด่วนด้านล่าง" maxlength="80" required>
+            <div class="quick-preset-chips" id="quick-preset-chips">
+              <button type="button" class="preset-chip" data-text="สัญจรได้ปกติ ทุกช่องทาง">🟢 สัญจรได้ปกติ</button>
+              <button type="button" class="preset-chip" data-text="ระดับน้ำคลองปกติ ต่ำกว่าตลิ่ง">🟢 ระดับน้ำปกติ</button>
+              <button type="button" class="preset-chip" data-text="พบน้ำท่วมขังผิวถนนรอระบาย">🟡 น้ำท่วมขังรอระบาย</button>
+              <button type="button" class="preset-chip" data-text="น้ำหนุนสูง เฝ้าระวังระดับน้ำ">🟡 น้ำหนุนสูง</button>
+              <button type="button" class="preset-chip" data-text="เดินเครื่องสูบจ่ายน้ำเต็มกำลัง">🟢 เดินเครื่องปกติ</button>
+            </div>
+          </div>
+
+          <!-- Full Narrative Description -->
+          <div class="form-group">
+            <label class="form-label" for="report-desc">รายละเอียดสถานการณ์ / บันทึกเหตุการณ์ (ไดอารี)</label>
+            <textarea id="report-desc" class="form-textarea" rows="2" placeholder="ระบุการดำเนินงาน สภาพแวดล้อม หรือข้อมูลเพิ่มเติมเชิงลึก (ไม่บังคับ)..."></textarea>
+          </div>
+
+          <!-- JPG Image Upload with Direct Camera Support -->
+          <div class="form-group">
+            <label class="form-label">แนบภาพถ่ายสถานที่จริง (บีบอัดอัตโนมัติ)</label>
+            <div style="display: flex; gap: 8px;">
+              <label for="report-camera-input" class="btn btn-outline" style="flex: 1; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; background: #f0fdf4; border-color: #86efac; color: #166534; font-weight: 600;">
+                <span>📷 ถ่ายภาพสด</span>
+                <input type="file" id="report-camera-input" accept="image/*" capture="environment" style="display: none;">
+              </label>
+              <label for="report-image-input" class="btn btn-outline" style="flex: 1; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px;">
+                <span>🖼️ เลือกจากคลังภาพ</span>
+                <input type="file" id="report-image-input" accept="image/*" style="display: none;">
+              </label>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+              <img id="report-image-preview" src="" alt="ภาพตัวอย่าง" style="display: none; max-height: 90px; border-radius: 6px; border: 1px solid var(--border-color); object-fit: cover;">
+              <button type="button" class="btn btn-ghost" id="btn-clear-image" style="display: none; color: #ef4444; font-size: 0.78rem; font-weight: 600;">🗑️ ลบภาพ</button>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" data-close-modal="modal-new-report">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary">💾 บันทึกเข้าไทม์ไลน์</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =======================================================
+       MODAL 3: LOCATION DIARY TIMELINE MODAL
+       ======================================================= -->
+  <div class="modal-backdrop" id="modal-timeline">
+    <div class="modal-box" style="max-width: 680px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">
+            <span>📖</span>
+            <span id="timeline-modal-title">ชื่อสถานที่</span>
+          </div>
+          <div style="font-size: 0.74rem; color: var(--text-muted); margin-top: 2px;">
+            <span id="timeline-modal-coords">พิกัด</span> • <span id="timeline-modal-desc">คำอธิบาย</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div id="timeline-modal-status"></div>
+          <button class="modal-close" data-close-modal="modal-timeline">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal-body" style="max-height: 65vh;">
+        <!-- Top Toolbar inside timeline -->
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 6px;">
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">ประวัติบันทึกสถานการณ์ทั้งหมดที่จุดนี้:</span>
+          <button type="button" class="btn btn-primary" id="btn-add-location-log" style="font-size: 0.76rem; padding: 4px 10px; display: none;">
+            <span>➕</span>
+            <span>เพิ่มบันทึกสถานการณ์</span>
+          </button>
+        </div>
+
+        <!-- Vertical Timeline Stream Container -->
+        <div class="timeline-stream" id="timeline-stream-container">
+          <!-- Populated dynamically by timeline.js -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-close-modal="modal-timeline">ปิดหน้าต่าง</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =======================================================
+       MODAL 4: IMAGE LIGHTBOX (HIGH-RES PREVIEW)
+       ======================================================= -->
+  <div class="modal-backdrop" id="modal-lightbox">
+    <div style="max-width: 90vw; max-height: 90vh; position: relative;">
+      <button class="modal-close" data-close-modal="modal-lightbox" style="position: absolute; top: -36px; right: 0; font-size: 2rem; color: #fff;">&times;</button>
+      <img id="lightbox-image" src="" alt="ภาพขยายขนาดเต็ม" style="max-width: 100%; max-height: 85vh; border-radius: 8px; box-shadow: 0 16px 48px rgba(0,0,0,0.8); display: block;">
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation Bar (Visible only on mobile <= 900px) -->
+  <nav class="mobile-nav-bar" id="mobile-nav-bar">
+    <button class="mobile-nav-item active" id="btn-mobile-tab-map" type="button">
+      <span class="mobile-nav-icon">🗺️</span>
+      <span class="mobile-nav-label">แผนที่</span>
+    </button>
+    <button class="mobile-nav-fab" id="btn-mobile-fab-add" type="button" title="รายงานเหตุการณ์ใหม่">
+      <span class="fab-icon">➕</span>
+      <span class="fab-label">รายงาน</span>
+    </button>
+    <button class="mobile-nav-item" id="btn-mobile-tab-feed" type="button">
+      <span class="mobile-nav-icon">📡</span>
+      <span class="mobile-nav-label">ฟีดอัปเดต</span>
+      <span class="mobile-nav-badge" id="mobile-feed-badge">0</span>
+    </button>
+  </nav>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- External Libraries: Leaflet & html2canvas -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Application Modules -->
+  <script src="js/auth.js"></script>
+  <script src="js/ip-tracker.js"></script>
+  <script src="js/image-helper.js"></script>
+  <script src="js/data-store.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/timeline.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

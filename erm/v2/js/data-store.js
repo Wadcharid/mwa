@@ -1,0 +1,286 @@
+/**
+ * ERM v2 - Data Store Module
+ * Manages standard locations, custom locations, and the timeline diary stream.
+ */
+
+const STORAGE_KEY_TIMELINE = 'erm_v2_timeline_data';
+const STORAGE_KEY_CUSTOM_LOCS = 'erm_v2_custom_locations';
+
+class DataStoreV2 {
+  constructor() {
+    this.locations = [];
+    this.timeline = [];
+    this.subscribers = [];
+  }
+
+  subscribe(callback) {
+    if (typeof callback === 'function') {
+      this.subscribers.push(callback);
+    }
+  }
+
+  notify() {
+    this.subscribers.forEach(cb => cb({
+      locations: this.getAllLocations(),
+      timeline: this.getTimeline()
+    }));
+  }
+
+  async init() {
+    // 1. Load Locations
+    await this.loadLocations();
+
+    // 2. Load Timeline
+    await this.loadTimeline();
+
+    this.notify();
+    return {
+      locations: this.getAllLocations(),
+      timeline: this.getTimeline()
+    };
+  }
+
+  getBasePath() {
+    const scripts = document.getElementsByTagName('script');
+    for (let i = 0; i < scripts.length; i++) {
+      const src = scripts[i].getAttribute('src') || '';
+      if (src.includes('data-store.js')) {
+        const idx = src.indexOf('js/data-store.js');
+        if (idx !== -1) {
+          return src.substring(0, idx);
+        }
+      }
+    }
+    return '';
+  }
+
+  async loadLocations() {
+    const basePath = this.getBasePath();
+    // Load standard locations (try detected basePath first, then fallback to root data/)
+    try {
+      let resp = await fetch(basePath + 'data/locations.json');
+      if (!resp.ok && basePath) {
+        resp = await fetch('data/locations.json');
+      }
+      if (resp.ok) {
+        this.locations = await resp.json();
+      }
+    } catch (e) {
+      console.warn('Failed to fetch data/locations.json, using fallback:', e);
+      this.locations = this.getFallbackLocations();
+    }
+
+    // Load any user-created custom locations from localStorage
+    const savedCustom = localStorage.getItem(STORAGE_KEY_CUSTOM_LOCS);
+    if (savedCustom) {
+      try {
+        const customLocs = JSON.parse(savedCustom);
+        if (Array.isArray(customLocs)) {
+          this.locations = [...this.locations, ...customLocs];
+        }
+      } catch (err) {
+        console.error('Failed to parse custom locations:', err);
+      }
+    }
+  }
+
+  async loadTimeline() {
+    // Check localStorage first
+    const cachedTimeline = localStorage.getItem(STORAGE_KEY_TIMELINE);
+    if (cachedTimeline) {
+      try {
+        this.timeline = JSON.parse(cachedTimeline);
+        return;
+      } catch (e) {
+        console.warn('Failed to parse cached timeline, falling back to file:', e);
+      }
+    }
+
+    // Fallback: fetch from data/timeline.json
+    try {
+      const basePath = this.getBasePath();
+      let resp = await fetch(basePath + 'data/timeline.json');
+      if (!resp.ok && basePath) {
+        resp = await fetch('data/timeline.json');
+      }
+      if (resp.ok) {
+        this.timeline = await resp.json();
+        this.saveTimelineToStorage();
+        return;
+      }
+    } catch (e) {
+      console.warn('Failed to fetch data/timeline.json:', e);
+    }
+
+    if (!this.timeline || this.timeline.length === 0) {
+      this.timeline = [];
+    }
+  }
+
+  saveTimelineToStorage() {
+    try {
+      localStorage.setItem(STORAGE_KEY_TIMELINE, JSON.stringify(this.timeline));
+    } catch (e) {
+      console.error('LocalStorage write failed:', e);
+    }
+  }
+
+  saveCustomLocationsToStorage() {
+    try {
+      const customLocs = this.locations.filter(l => !l.isStandard);
+      localStorage.setItem(STORAGE_KEY_CUSTOM_LOCS, JSON.stringify(customLocs));
+    } catch (e) {
+      console.error('Custom locations save failed:', e);
+    }
+  }
+
+  getAllLocations() {
+    return this.locations;
+  }
+
+  getLocationById(id) {
+    return this.locations.find(l => l.id === id);
+  }
+
+  getTimeline(filterLocationId = null) {
+    let list = [...this.timeline];
+    if (filterLocationId) {
+      list = list.filter(item => item.locationId === filterLocationId);
+    }
+    // Sort descending by timestamp (newest first)
+    list.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return list;
+  }
+
+  getLatestStatusForLocation(locationId) {
+    const entries = this.getTimeline(locationId);
+    if (entries.length > 0) {
+      return entries[0].status; // Most recent status
+    }
+    return 'nodata';
+  }
+
+  getLatestEntryForLocation(locationId) {
+    const entries = this.getTimeline(locationId);
+    return entries.length > 0 ? entries[0] : null;
+  }
+
+  /**
+   * Add a new Timeline record (Diary Post)
+   */
+  addTimelineEntry(entry) {
+    const newEntry = {
+      id: 'tl-' + Date.now(),
+      locationId: entry.locationId,
+      locationName: entry.locationName,
+      lat: Number(entry.lat),
+      lng: Number(entry.lng),
+      status: entry.status || 'normal',
+      shortSummary: entry.shortSummary || '',
+      description: entry.description || '',
+      reportedBy: entry.reportedBy || 'ผู้ดูแลระบบ',
+      ipAddress: entry.ipAddress || '127.0.0.1',
+      timestamp: entry.timestamp || new Date().toISOString(),
+      image: entry.image || ''
+    };
+
+    this.timeline.unshift(newEntry);
+    this.saveTimelineToStorage();
+    this.notify();
+    return newEntry;
+  }
+
+  /**
+   * Add a new Custom Location (e.g. from clicking on map)
+   */
+  addCustomLocation(name, lat, lng, description = '') {
+    const id = 'loc-custom-' + Date.now();
+    const newLoc = {
+      id,
+      name,
+      thaiName: name,
+      lat: Number(lat),
+      lng: Number(lng),
+      category: 'facility',
+      description,
+      isStandard: false
+    };
+
+    this.locations.push(newLoc);
+    this.saveCustomLocationsToStorage();
+    this.notify();
+    return newLoc;
+  }
+
+  /**
+   * Delete a timeline entry (Admin only)
+   */
+  deleteTimelineEntry(entryId) {
+    this.timeline = this.timeline.filter(e => e.id !== entryId);
+    this.saveTimelineToStorage();
+    this.notify();
+  }
+
+  /**
+   * Export all timeline data as a JSON file
+   */
+  exportTimelineJSON() {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.timeline, null, 2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute('href', dataStr);
+    dlAnchor.setAttribute('download', `timeline-${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+  }
+
+  /**
+   * Import timeline JSON file
+   */
+  async importTimelineJSON(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            this.timeline = imported;
+            this.saveTimelineToStorage();
+            this.notify();
+            resolve(imported.length);
+          } else {
+            reject(new Error('รูปแบบไฟล์ JSON ไม่ถูกต้อง (ต้องเป็น Array)'));
+          }
+        } catch (err) {
+          reject(new Error('เกิดข้อผิดพลาดในการแปลงไฟล์ JSON'));
+        }
+      };
+      reader.onerror = () => reject(new Error('ไม่สามารถอ่านไฟล์ได้'));
+      reader.readAsText(file);
+    });
+  }
+
+  getFallbackLocations() {
+    return [
+      { id: "loc-dps", name: "DPS", thaiName: "สถานีสูบจ่ายน้ำ DPS", lat: 13.808759218223376, lng: 100.40970963895805, direction: "top", category: "facility", isStandard: true },
+      { id: "loc-tps", name: "TPS", thaiName: "สถานีสูบถ่ายน้ำ TPS", lat: 13.808286118958122, lng: 100.40907811024276, direction: "left", category: "facility", isStandard: true },
+      { id: "loc-rps1", name: "RPS1", thaiName: "สถานีสูบน้ำดิบ RPS 1", lat: 13.81226362737259, lng: 100.40694895618114, direction: "top", category: "facility", isStandard: true },
+      { id: "loc-rps2", name: "RPS2", thaiName: "สถานีสูบน้ำดิบ RPS 2", lat: 13.81144885695744, lng: 100.40567687691177, direction: "left", category: "facility", isStandard: true },
+      { id: "loc-mh-phase1", name: "MH Phase 1", thaiName: "โรงงานมหาสวัสดิ์ ระยะ 1", lat: 13.81083558702419, lng: 100.40837440670992, direction: "top", category: "facility", isStandard: true },
+      { id: "loc-mh-phase2", name: "MH Phase 2", thaiName: "โรงงานมหาสวัสดิ์ ระยะ 2", lat: 13.810450102240246, lng: 100.40766168144553, direction: "bottom", category: "facility", isStandard: true },
+      { id: "loc-mh-phase3", name: "MH Phase 3", thaiName: "โรงงานมหาสวัสดิ์ ระยะ 3", lat: 13.810099660974316, lng: 100.40693091250355, direction: "top", category: "facility", isStandard: true },
+      { id: "loc-mh-phase4", name: "MH Phase 4", thaiName: "โรงงานมหาสวัสดิ์ ระยะ 4", lat: 13.809740458129943, lng: 100.40634449298223, direction: "bottom", category: "facility", isStandard: true },
+      { id: "loc-surge-tower", name: "ถนนจุดจอดรถหน้า Surge Tower", thaiName: "ถนนจุดจอดรถหน้า Surge Tower", lat: 13.808076825972208, lng: 100.40971538443868, direction: "bottom", category: "facility", isStandard: true },
+      { id: "loc-raw-water-basin", name: "Raw Water Basin", thaiName: "สระพักน้ำดิบ (Raw Water Basin)", lat: 13.811961850304513, lng: 100.4053478538198, direction: "top", category: "canal", isStandard: true },
+      { id: "loc-banglen", name: "รส.บางเลน", thaiName: "โรงสูบน้ำดิบบางเลน", lat: 14.010918551132619, lng: 100.18452925916316, direction: "top", category: "water_quality", description: "โรงสูบน้ำดิบบางเลน", isStandard: true },
+      { id: "loc-thamuang", name: "จุดรับน้ำดิบท่าม่วง", thaiName: "จุดรับน้ำดิบท่าม่วง (จ.กาญจนบุรี)", lat: 13.955898910198963, lng: 99.6250990834308, direction: "top", category: "canal", isStandard: true },
+      { id: "loc-workshop", name: "ถนน Workshop", thaiName: "ถนนหน้าโรงซ่อมบำรุง (Workshop)", lat: 13.80683177076353, lng: 100.40776994365987, direction: "bottom", category: "facility", isStandard: true },
+      { id: "loc-u-turn-front", name: "จุดกลับรถหน้าโรงงานฯ", thaiName: "จุดกลับรถหน้าโรงงานผลิตน้ำมหาสวัสดิ์", lat: 13.808445225424613, lng: 100.41093757923936, direction: "right", category: "facility", isStandard: true },
+      { id: "loc-u-turn-wat-sri", name: "จุดกลับรถหน้า ซ.วัดศรีประวัติ", thaiName: "จุดกลับรถหน้า ซ.วัดศรีประวัติ (คลองมหาสวัสดิ์)", lat: 13.80190817394532, lng: 100.41020141463888, direction: "bottom", category: "canal", isStandard: true },
+      { id: "loc-plant-front", name: "หน้าโรงงาน", thaiName: "ประตูทางเข้าหลัก หน้าโรงงาน", lat: 13.807532300140185, lng: 100.4108361979887, direction: "right", category: "facility", isStandard: true },
+      { id: "loc-7-11-sri-prawat", name: "7-11 กลาง ซ.วัดศรีประวัติ", thaiName: "7-Eleven กลาง ซ.วัดศรีประวัติ", lat: 13.803484368789302, lng: 100.40755510406127, direction: "left", category: "facility", isStandard: true }
+    ];
+  }
+}
+
+window.dataStore = new DataStoreV2();
