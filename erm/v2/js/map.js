@@ -15,25 +15,39 @@ class MapControllerV2 {
     this.defaultZoom = 16;
   }
 
-  init() {
-    // 1. Base Tile Layer (Esri World Imagery เท่านั้น พร้อม crossOrigin สำหรับ html2canvas)
-    const esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      maxZoom: 19,
+    // 1. Base Tile Layers: Google Maps Satellite (ภาพดาวเทียม) & Google Maps Hybrid
+    const googleSatellite = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      subdomains: ['0', '1', '2', '3'],
       crossOrigin: 'anonymous',
-      attribution: '&copy; Esri World Imagery'
+      attribution: '&copy; Google Maps Satellite'
+    });
+
+    const googleHybrid = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      subdomains: ['0', '1', '2', '3'],
+      crossOrigin: 'anonymous',
+      attribution: '&copy; Google Maps Hybrid'
     });
 
     // 2. Instantiate Leaflet Map
     this.map = L.map(this.containerId, {
       center: this.defaultCenter,
       zoom: this.defaultZoom,
-      maxZoom: 19,
-      layers: [esriSatellite],
+      maxZoom: 20,
+      layers: [googleSatellite],
       zoomControl: false
     });
 
     // Zoom controls at top-left
     L.control.zoom({ position: 'topleft' }).addTo(this.map);
+
+    // Layer Control: Switch between Satellite and Hybrid
+    const baseLayers = {
+      "🛰️ ดาวเทียม (Satellite)": googleSatellite,
+      "🗺️ ดาวเทียม+ถนน (Hybrid)": googleHybrid
+    };
+    L.control.layers(baseLayers, null, { position: 'topright', collapsed: true }).addTo(this.map);
 
     // 3. Map Click Event (Admin: create new report / custom pin at clicked point)
     this.map.on('click', (e) => {
@@ -51,9 +65,28 @@ class MapControllerV2 {
     this.map.on('moveend', () => this.updateBalloonCollisions());
     this.map.on('zoomend', () => this.updateBalloonCollisions());
     this.map.on('viewreset', () => this.updateBalloonCollisions());
-    this.map.on('resize', () => this.scheduleLayoutUpdate());
+    this.map.on('resize', () => {
+      this.map.invalidateSize();
+      this.scheduleLayoutUpdate();
+    });
 
-    console.log('Leaflet Map v2 initialized with Dynamic Balloon Anti-Collision.');
+    window.addEventListener('resize', () => {
+      if (this.map) {
+        this.map.invalidateSize();
+        this.scheduleLayoutUpdate();
+      }
+    });
+
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        if (this.map) {
+          this.map.invalidateSize();
+          this.scheduleLayoutUpdate();
+        }
+      }, 300);
+    });
+
+    console.log('Leaflet Map v2 initialized with Google Maps Satellite & Dynamic Balloon Anti-Collision.');
   }
 
   scheduleLayoutUpdate() {

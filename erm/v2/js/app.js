@@ -597,6 +597,12 @@ class ApplicationControllerV2 {
         if (window.mapController && window.mapController.map) {
           window.mapController.map.invalidateSize();
           window.mapController.scheduleLayoutUpdate();
+          setTimeout(() => {
+            if (window.mapController && window.mapController.map) {
+              window.mapController.map.invalidateSize();
+              window.mapController.scheduleLayoutUpdate();
+            }
+          }, 150);
         }
       });
 
