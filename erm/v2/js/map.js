@@ -15,6 +15,7 @@ class MapControllerV2 {
     this.defaultZoom = 16;
   }
 
+  init() {
     // 1. Base Tile Layers: Google Maps Satellite (ภาพดาวเทียม) & Google Maps Hybrid
     const googleSatellite = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
       maxZoom: 20,
