@@ -90,33 +90,33 @@ class TimelineControllerV2 {
 
       return `
         <div class="feed-card feed-card-compact ${statusBorderClass}" data-entry-id="${entry.id}" data-location-id="${entry.locationId}" title="คลิกเพื่อไปที่จุดนี้บนแผนที่">
-          <!-- แถวบน: ตำแหน่ง และ สถานะ -->
-          <div class="compact-top-row">
-            <div class="compact-location">
-              <span class="compact-pin">📍</span>
-              <strong class="compact-location-name">${this.escapeHTML(entry.locationName)}</strong>
+          <div class="compact-card-grid">
+            <!-- ฝั่งซ้าย: ชื่อสถานที่ + ปุ่มดูภาพถ่าย (ต่อท้ายชื่อสถานที่) และ ข้อความสรุปสถานการณ์ -->
+            <div class="compact-left-col">
+              <div class="compact-title-row">
+                <span class="compact-pin">📍</span>
+                <strong class="compact-location-name">${this.escapeHTML(entry.locationName)}</strong>
+                ${hasImage ? `
+                  <button type="button" class="btn-compact-photo" onclick="event.stopPropagation(); window.appController.openLightbox('${entry.image}')" title="คลิกเพื่อดูภาพถ่ายสถานที่จริง">
+                    <span>📷</span>
+                    <span>ดูภาพถ่าย</span>
+                  </button>
+                ` : ''}
+              </div>
+              <div class="compact-body">
+                ${this.escapeHTML(entry.shortSummary || entry.description || 'ไม่มีข้อความสรุป')}
+              </div>
             </div>
-            ${statusBadge}
-          </div>
 
-          <!-- แถวกลาง: ข้อความสรุปสถานการณ์ -->
-          <div class="compact-body">
-            ${this.escapeHTML(entry.shortSummary || entry.description || 'ไม่มีข้อความสรุป')}
-          </div>
-
-          <!-- แถวล่าง: ผู้รายงาน, เวลา และ ปุ่มดูภาพถ่าย (กรณีมีภาพแนบ) -->
-          <div class="compact-bottom-row">
-            <div class="compact-meta">
-              <span class="compact-reporter" title="ผู้รายงาน">👤 ${this.escapeHTML(entry.reportedBy || 'เจ้าหน้าที่')}</span>
-              <span class="compact-dot">•</span>
-              <span class="compact-time" title="${this.formatDateTime(entry.timestamp)}">🕒 ${timeFormatted}</span>
+            <!-- ฝั่งขวา: ป้ายสถานะ และ ข้อมูลผู้รายงาน+เวลา (อยู่ใต้สถานะ) -->
+            <div class="compact-right-col">
+              ${statusBadge}
+              <div class="compact-meta">
+                <span class="compact-reporter" title="ผู้รายงาน">👤 ${this.escapeHTML(entry.reportedBy || 'เจ้าหน้าที่')}</span>
+                <span class="compact-dot">•</span>
+                <span class="compact-time" title="${this.formatDateTime(entry.timestamp)}">🕒 ${timeFormatted}</span>
+              </div>
             </div>
-            ${hasImage ? `
-              <button type="button" class="btn-compact-photo" onclick="event.stopPropagation(); window.appController.openLightbox('${entry.image}')" title="คลิกเพื่อดูภาพถ่ายสถานที่จริง">
-                <span>📷</span>
-                <span>ดูภาพถ่าย</span>
-              </button>
-            ` : ''}
           </div>
         </div>
       `;
