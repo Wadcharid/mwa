@@ -85,12 +85,15 @@ class DataStoreV2 {
   }
 
   async loadTimeline() {
-    // Check localStorage first
+    // Check localStorage first (must be a non-empty array)
     const cachedTimeline = localStorage.getItem(STORAGE_KEY_TIMELINE);
     if (cachedTimeline) {
       try {
-        this.timeline = JSON.parse(cachedTimeline);
-        return;
+        const parsed = JSON.parse(cachedTimeline);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          this.timeline = parsed;
+          return;
+        }
       } catch (e) {
         console.warn('Failed to parse cached timeline, falling back to file:', e);
       }

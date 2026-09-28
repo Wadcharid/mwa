@@ -49,10 +49,10 @@
   --accent-blue: #2563eb;
   --accent-purple: #6366f1;
   
-  /* Layout Dimensions (สัดส่วนแผนที่ 60% : Live Updates Feed 40%) */
+  /* Layout Dimensions (สัดส่วนแผนที่ 70% : Live Updates Feed 30%) */
   --header-height: 64px;
-  --map-width: 60%;
-  --sidebar-width: 40%;
+  --map-width: 70%;
+  --sidebar-width: 30%;
 }
 
 * {
@@ -296,7 +296,7 @@ body {
   background: var(--bg-main);
 }
 
-/* Left: Map Area (สัดส่วน 60%) */
+/* Left: Map Area (สัดส่วน 70%) */
 .map-section {
   flex: 0 0 var(--map-width);
   width: var(--map-width);
@@ -380,7 +380,7 @@ body {
 /* ==========================================================================
    Right: Live Timeline Feed Sidebar (Social Media Feed)
    ========================================================================== */
-/* Right: Live Timeline Feed Sidebar (สัดส่วน 40%) */
+/* Right: Live Timeline Feed Sidebar (สัดส่วน 30%) */
 .feed-sidebar {
   flex: 0 0 var(--sidebar-width);
   width: var(--sidebar-width);
