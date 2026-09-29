@@ -1,7 +1,7 @@
 /**
  * turbidity.js - Controller for Raw Water Turbidity (ความขุ่น) Monitoring Widget
  * Reports turbidity for: แควน้อย, แควใหญ่, แม่กลอง, ท่าม่วง, บางเลน กม.35, คลองตะวันตก กม.14
- * Source: MWA RWC (http://rwc.mwa.co.th/page/home/table.php via data/turbidity_cache.json / get_turbidity.php)
+ * Source: MWA RWC (http://rwc.mwa.co.th/page/home/table.php via Google Apps Script / turbidity_cache.json / get_turbidity.php)
  */
 
 class TurbidityWidget {
@@ -17,6 +17,10 @@ class TurbidityWidget {
     this.isCollapsed = false; // Initial state: ขยาย (Expanded)
     this.pollInterval = 3 * 60 * 1000; // 3 minutes
     this.timerId = null;
+
+    // URL ของ Google Apps Script Web App สำหรับดึงข้อมูลสดทันที (Realtime On-Demand)
+    // นำ URL ที่ได้จากการ Deploy Web App มาวางที่นี่
+    this.gasApiUrl = '';
 
     // Target stations in order
     this.targetStations = [
@@ -51,7 +55,7 @@ class TurbidityWidget {
       });
     }
 
-    // Manual refresh button
+    // Manual refresh button (กดแล้วจะดึงสดทันที)
     if (this.refreshBtn) {
       this.refreshBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -80,7 +84,24 @@ class TurbidityWidget {
     try {
       let data = null;
 
-      // 1. Try PHP endpoint if in local server environment (not github.io and running over http)
+      // 1. ลองดึงข้อมูลสดทันทีผ่าน Google Apps Script (Live On-Demand) ทุกครั้งที่เปิดหน้าหรือกดรีเฟรช
+      if (this.gasApiUrl) {
+        try {
+          const sep = this.gasApiUrl.includes('?') ? '&' : '?';
+          const res = await fetch(this.gasApiUrl + sep + 't=' + Date.now(), { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json();
+            if (json && json.status === 'success' && json.data && Array.isArray(json.data)) {
+              this.renderData(json.data, json.time, json.date);
+              return;
+            }
+          }
+        } catch (gasErr) {
+          console.warn('Google Apps Script live fetch notice, falling back to cache:', gasErr);
+        }
+      }
+
+      // 2. ลองดึงผ่าน PHP endpoint หากรันบน local server (XAMPP localhost)
       if (!window.location.hostname.includes('github.io') && window.location.protocol.startsWith('http')) {
         try {
           const res = await fetch('get_turbidity.php?t=' + Date.now(), { cache: 'no-store' });
@@ -98,7 +119,7 @@ class TurbidityWidget {
         }
       }
 
-      // 2. Fetch bundled/cached JSON (works 100% on GitHub Pages, file://, localhost)
+      // 3. Fallback ดึงจากไฟล์ data/turbidity_cache.json (อัปเดตอัตโนมัติโดย GitHub Actions)
       if (!data) {
         try {
           const res = await fetch('data/turbidity_cache.json?t=' + Date.now(), { cache: 'no-store' });
