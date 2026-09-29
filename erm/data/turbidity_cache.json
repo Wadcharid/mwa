@@ -1,45 +1,45 @@
 {
     "status": "success",
     "source": "live",
-    "date": "29\/09\/2569",
-    "time": "09:30",
-    "updated_at": "2026-09-29 04:48:28",
+    "date": "29/09/2569",
+    "time": "10:00",
+    "updated_at": "2026-09-29 03:08:44",
     "data": [
         {
             "id": "S16",
             "name": "แควน้อย",
-            "turbidity": 921,
-            "raw_turbidity": "921",
+            "turbidity": 905.0,
+            "raw_turbidity": "905",
             "is_high": true,
-            "date": "29\/09\/2569",
-            "time": "09:40"
+            "date": "29/09/2569",
+            "time": "10:00"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 544,
-            "raw_turbidity": "544",
+            "turbidity": 541.0,
+            "raw_turbidity": "541",
             "is_high": true,
-            "date": "29\/09\/2569",
-            "time": "09:40"
+            "date": "29/09/2569",
+            "time": "10:00"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 693,
-            "raw_turbidity": "693",
+            "turbidity": 555.0,
+            "raw_turbidity": "555",
             "is_high": true,
-            "date": "29\/09\/2569",
-            "time": "09:40"
+            "date": "29/09/2569",
+            "time": "10:00"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 152,
-            "raw_turbidity": "152",
+            "turbidity": 151.0,
+            "raw_turbidity": "151",
             "is_high": true,
-            "date": "29\/09\/2569",
-            "time": "09:40"
+            "date": "29/09/2569",
+            "time": "10:00"
         },
         {
             "id": "S12",
@@ -47,8 +47,8 @@
             "turbidity": 34.2,
             "raw_turbidity": "34.2",
             "is_high": false,
-            "date": "29\/09\/2569",
-            "time": "09:40"
+            "date": "29/09/2569",
+            "time": "10:00"
         },
         {
             "id": "S14",
@@ -56,8 +56,8 @@
             "turbidity": 36.6,
             "raw_turbidity": "36.6",
             "is_high": false,
-            "date": "29\/09\/2569",
-            "time": "09:30"
+            "date": "29/09/2569",
+            "time": "10:00"
         }
     ]
 }
