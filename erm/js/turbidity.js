@@ -19,8 +19,7 @@ class TurbidityWidget {
     this.timerId = null;
 
     // URL ของ Google Apps Script Web App สำหรับดึงข้อมูลสดทันที (Realtime On-Demand)
-    // นำ URL ที่ได้จากการ Deploy Web App มาวางที่นี่
-    this.gasApiUrl = '';
+    this.gasApiUrl = 'https://script.google.com/macros/s/AKfycby1Wb5gYUubI9V-nrekNYYcnCJJGfEs_khAB7uJUMEwys93geQS4ZKd76rZ_79jzC54/exec';
 
     // Target stations in order
     this.targetStations = [
