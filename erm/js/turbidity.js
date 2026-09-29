@@ -1,7 +1,7 @@
 /**
  * turbidity.js - Controller for Raw Water Turbidity (ความขุ่น) Monitoring Widget
  * Reports turbidity for: แควน้อย, แควใหญ่, แม่กลอง, ท่าม่วง, บางเลน กม.35, คลองตะวันตก กม.14
- * Source: MWA RWC (http://rwc.mwa.co.th/page/home/table.php via get_turbidity.php)
+ * Source: MWA RWC (http://rwc.mwa.co.th/page/home/table.php via data/turbidity_cache.json / get_turbidity.php)
  */
 
 class TurbidityWidget {
@@ -17,7 +17,6 @@ class TurbidityWidget {
     this.isCollapsed = false; // Initial state: ขยาย (Expanded)
     this.pollInterval = 3 * 60 * 1000; // 3 minutes
     this.timerId = null;
-    this.unsubscribeFirestore = null;
 
     // Target stations in order
     this.targetStations = [
@@ -36,48 +35,10 @@ class TurbidityWidget {
     this.bindEvents();
     this.fetchData();
 
-    // Setup Firebase Firestore Realtime listener if available
-    if (window.ermFirebase) {
-      if (window.ermFirebase.isConnected()) {
-        this.listenFirestoreTurbidity();
-      }
-      window.ermFirebase.onConnectionChange((connected) => {
-        if (connected) {
-          this.listenFirestoreTurbidity();
-        }
-      });
-    }
-
     // Auto-refresh every 3 minutes
     this.timerId = setInterval(() => {
       this.fetchData(false);
     }, this.pollInterval);
-  }
-
-  listenFirestoreTurbidity() {
-    if (!window.ermFirebase || !window.ermFirebase.isConnected()) return;
-    try {
-      const db = window.ermFirebase.getDb();
-      if (!db) return;
-      if (this.unsubscribeFirestore) {
-        this.unsubscribeFirestore();
-        this.unsubscribeFirestore = null;
-      }
-      this.unsubscribeFirestore = db.collection('turbidity').doc('latest')
-        .onSnapshot((doc) => {
-          if (doc.exists) {
-            const data = doc.data();
-            if (data && data.data && Array.isArray(data.data)) {
-              console.log('🔥 Turbidity updated via Firestore Realtime:', data.time);
-              this.renderData(data.data, data.time, data.date);
-            }
-          }
-        }, (err) => {
-          console.warn('Firestore turbidity listener notice:', err);
-        });
-    } catch (e) {
-      console.warn('Error setting up Firestore turbidity listener:', e);
-    }
   }
 
   bindEvents() {
@@ -119,24 +80,8 @@ class TurbidityWidget {
     try {
       let data = null;
 
-      // 1. Try Firebase Cloud Firestore first
-      if (window.ermFirebase && window.ermFirebase.isConnected()) {
-        try {
-          const db = window.ermFirebase.getDb();
-          const doc = await db.collection('turbidity').doc('latest').get();
-          if (doc.exists) {
-            const fbData = doc.data();
-            if (fbData && fbData.data && Array.isArray(fbData.data)) {
-              data = fbData;
-            }
-          }
-        } catch (fbErr) {
-          console.warn('Firestore turbidity fetch notice:', fbErr);
-        }
-      }
-
-      // 2. Try PHP endpoint if in server environment (not github.io and running over http)
-      if (!data && !window.location.hostname.includes('github.io') && window.location.protocol.startsWith('http')) {
+      // 1. Try PHP endpoint if in local server environment (not github.io and running over http)
+      if (!window.location.hostname.includes('github.io') && window.location.protocol.startsWith('http')) {
         try {
           const res = await fetch('get_turbidity.php?t=' + Date.now(), { cache: 'no-store' });
           if (res.ok) {
@@ -149,11 +94,11 @@ class TurbidityWidget {
             }
           }
         } catch (phpErr) {
-          console.warn('PHP endpoint notice:', phpErr);
+          // ignore and fallback to static cache
         }
       }
 
-      // 3. Fallback to bundled/cached JSON (works 100% on GitHub Pages, file://, localhost)
+      // 2. Fetch bundled/cached JSON (works 100% on GitHub Pages, file://, localhost)
       if (!data) {
         try {
           const res = await fetch('data/turbidity_cache.json?t=' + Date.now(), { cache: 'no-store' });
