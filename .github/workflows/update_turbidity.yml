@@ -1,0 +1,38 @@
+name: Auto Update Turbidity Data
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Enable manual trigger from GitHub UI
+
+permissions:
+  contents: write
+
+jobs:
+  update-turbidity:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run turbidity scraper
+        run: python erm/scripts/update_turbidity.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add erm/data/turbidity_cache.json
+          if git diff --staged --quiet; then
+            echo "No changes in turbidity data."
+          else
+            git commit -m "chore(turbidity): auto-update raw water data [skip ci]"
+            git push
+          fi
