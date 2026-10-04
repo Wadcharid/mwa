@@ -2,26 +2,26 @@
     "status": "success",
     "source": "live",
     "date": "04/10/2569",
-    "time": "04:40",
-    "updated_at": "2026-10-03 21:49:38",
+    "time": "07:20",
+    "updated_at": "2026-10-04 00:26:59",
     "data": [
         {
             "id": "S16",
             "name": "แควน้อย",
-            "turbidity": 167.0,
-            "raw_turbidity": "167",
+            "turbidity": 163.0,
+            "raw_turbidity": "163",
             "is_high": true,
             "date": "04/10/2569",
-            "time": "04:40"
+            "time": "07:20"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 234.0,
-            "raw_turbidity": "234",
+            "turbidity": 209.0,
+            "raw_turbidity": "209",
             "is_high": true,
             "date": "04/10/2569",
-            "time": "04:40"
+            "time": "07:20"
         },
         {
             "id": "S11",
@@ -30,7 +30,7 @@
             "raw_turbidity": "74",
             "is_high": false,
             "date": "04/10/2569",
-            "time": "04:40"
+            "time": "07:20"
         },
         {
             "id": "S9",
@@ -39,25 +39,25 @@
             "raw_turbidity": "54",
             "is_high": false,
             "date": "04/10/2569",
-            "time": "04:40"
+            "time": "07:20"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 200.0,
-            "raw_turbidity": "200",
+            "turbidity": 189.0,
+            "raw_turbidity": "189",
             "is_high": true,
             "date": "04/10/2569",
-            "time": "04:40"
+            "time": "07:20"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 322.0,
-            "raw_turbidity": "322",
-            "is_high": true,
+            "turbidity": null,
+            "raw_turbidity": "-",
+            "is_high": false,
             "date": "04/10/2569",
-            "time": "04:40"
+            "time": "07:20"
         }
     ]
 }
