@@ -2,62 +2,62 @@
     "status": "success",
     "source": "live",
     "date": "12/10/2569",
-    "time": "13:20",
-    "updated_at": "2026-10-12 06:23:41",
+    "time": "22:50",
+    "updated_at": "2026-10-12 15:57:49",
     "data": [
         {
             "id": "S16",
             "name": "แควน้อย",
-            "turbidity": 158.0,
-            "raw_turbidity": "158",
+            "turbidity": 228.0,
+            "raw_turbidity": "228",
             "is_high": true,
             "date": "12/10/2569",
-            "time": "13:20"
+            "time": "22:50"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 302.0,
-            "raw_turbidity": "302",
-            "is_high": true,
+            "turbidity": 91.0,
+            "raw_turbidity": "91",
+            "is_high": false,
             "date": "12/10/2569",
-            "time": "13:20"
+            "time": "22:50"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 61.0,
-            "raw_turbidity": "61",
+            "turbidity": 87.0,
+            "raw_turbidity": "87",
             "is_high": false,
             "date": "12/10/2569",
-            "time": "13:20"
+            "time": "22:50"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 36.4,
-            "raw_turbidity": "36.4",
+            "turbidity": 28.8,
+            "raw_turbidity": "28.8",
             "is_high": false,
             "date": "12/10/2569",
-            "time": "13:20"
+            "time": "22:50"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 58.0,
-            "raw_turbidity": "58",
+            "turbidity": 78.0,
+            "raw_turbidity": "78",
             "is_high": false,
             "date": "12/10/2569",
-            "time": "13:20"
+            "time": "22:50"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 75.0,
-            "raw_turbidity": "75",
+            "turbidity": 72.0,
+            "raw_turbidity": "72",
             "is_high": false,
             "date": "12/10/2569",
-            "time": "13:20"
+            "time": "22:50"
         }
     ]
 }
