@@ -2,62 +2,62 @@
     "status": "success",
     "source": "live",
     "date": "14/10/2569",
-    "time": "01:10",
-    "updated_at": "2026-10-13 18:10:27",
+    "time": "05:40",
+    "updated_at": "2026-10-13 22:49:41",
     "data": [
         {
             "id": "S16",
             "name": "แควน้อย",
-            "turbidity": 218.0,
-            "raw_turbidity": "218",
-            "is_high": true,
+            "turbidity": null,
+            "raw_turbidity": "-",
+            "is_high": false,
             "date": "14/10/2569",
-            "time": "01:00"
+            "time": "05:40"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 77.0,
-            "raw_turbidity": "77",
+            "turbidity": 96.0,
+            "raw_turbidity": "96",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "01:00"
+            "time": "05:40"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 89.0,
-            "raw_turbidity": "89",
+            "turbidity": 95.0,
+            "raw_turbidity": "95",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "01:10"
+            "time": "05:40"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 42.0,
-            "raw_turbidity": "42",
+            "turbidity": 44.0,
+            "raw_turbidity": "44",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "01:10"
+            "time": "05:40"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 55.0,
-            "raw_turbidity": "55",
+            "turbidity": 54.0,
+            "raw_turbidity": "54",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "01:10"
+            "time": "05:40"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 68.0,
-            "raw_turbidity": "68",
+            "turbidity": 66.0,
+            "raw_turbidity": "66",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "01:10"
+            "time": "05:40"
         }
     ]
 }
