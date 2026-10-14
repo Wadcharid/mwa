@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "14/10/2569",
-    "time": "05:40",
-    "updated_at": "2026-10-13 22:49:41",
+    "time": "08:40",
+    "updated_at": "2026-10-14 01:45:38",
     "data": [
         {
             "id": "S16",
@@ -12,34 +12,34 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "05:40"
+            "time": "08:40"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 96.0,
-            "raw_turbidity": "96",
+            "turbidity": 97.0,
+            "raw_turbidity": "97",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "05:40"
+            "time": "08:40"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 95.0,
-            "raw_turbidity": "95",
+            "turbidity": 86.0,
+            "raw_turbidity": "86",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "05:40"
+            "time": "08:40"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 44.0,
-            "raw_turbidity": "44",
+            "turbidity": 45.0,
+            "raw_turbidity": "45",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "05:40"
+            "time": "08:40"
         },
         {
             "id": "S12",
@@ -48,16 +48,16 @@
             "raw_turbidity": "54",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "05:40"
+            "time": "08:40"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 66.0,
-            "raw_turbidity": "66",
+            "turbidity": 64.0,
+            "raw_turbidity": "64",
             "is_high": false,
             "date": "14/10/2569",
-            "time": "05:40"
+            "time": "08:40"
         }
     ]
 }
