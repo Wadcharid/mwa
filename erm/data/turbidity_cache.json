@@ -1,9 +1,9 @@
 {
     "status": "success",
     "source": "live",
-    "date": "14/10/2569",
-    "time": "20:00",
-    "updated_at": "2026-10-14 13:00:25",
+    "date": "15/10/2569",
+    "time": "01:00",
+    "updated_at": "2026-10-14 18:01:54",
     "data": [
         {
             "id": "S16",
@@ -11,44 +11,44 @@
             "turbidity": null,
             "raw_turbidity": "-",
             "is_high": false,
-            "date": "14/10/2569",
-            "time": "19:50"
+            "date": "14/10/2026",
+            "time": "18:01"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 409.0,
-            "raw_turbidity": "409",
+            "turbidity": 241.0,
+            "raw_turbidity": "241",
             "is_high": true,
-            "date": "14/10/2569",
-            "time": "19:50"
+            "date": "15/10/2569",
+            "time": "01:00"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 119.0,
-            "raw_turbidity": "119",
+            "turbidity": 148.0,
+            "raw_turbidity": "148",
             "is_high": true,
-            "date": "14/10/2569",
-            "time": "20:00"
+            "date": "15/10/2569",
+            "time": "00:50"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 45.0,
-            "raw_turbidity": "45",
+            "turbidity": 43.0,
+            "raw_turbidity": "43",
             "is_high": false,
-            "date": "14/10/2569",
-            "time": "20:00"
+            "date": "15/10/2569",
+            "time": "01:00"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 46.0,
-            "raw_turbidity": "46",
+            "turbidity": 53.0,
+            "raw_turbidity": "53",
             "is_high": false,
-            "date": "14/10/2569",
-            "time": "20:00"
+            "date": "15/10/2569",
+            "time": "01:00"
         },
         {
             "id": "S14",
@@ -56,8 +56,8 @@
             "turbidity": 60.0,
             "raw_turbidity": "60",
             "is_high": false,
-            "date": "14/10/2569",
-            "time": "20:00"
+            "date": "15/10/2569",
+            "time": "01:00"
         }
     ]
 }
