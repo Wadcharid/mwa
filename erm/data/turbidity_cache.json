@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "15/10/2569",
-    "time": "04:40",
-    "updated_at": "2026-10-14 21:44:26",
+    "time": "07:00",
+    "updated_at": "2026-10-15 00:08:58",
     "data": [
         {
             "id": "S16",
@@ -11,44 +11,44 @@
             "turbidity": null,
             "raw_turbidity": "-",
             "is_high": false,
-            "date": "14/10/2026",
-            "time": "21:44"
+            "date": "15/10/2026",
+            "time": "00:08"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 217.0,
-            "raw_turbidity": "217",
+            "turbidity": 172.0,
+            "raw_turbidity": "172",
             "is_high": true,
             "date": "15/10/2569",
-            "time": "04:40"
+            "time": "07:00"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 130.0,
-            "raw_turbidity": "130",
+            "turbidity": 142.0,
+            "raw_turbidity": "142",
             "is_high": true,
             "date": "15/10/2569",
-            "time": "04:40"
+            "time": "07:00"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 45.0,
-            "raw_turbidity": "45",
+            "turbidity": 46.0,
+            "raw_turbidity": "46",
             "is_high": false,
             "date": "15/10/2569",
-            "time": "04:40"
+            "time": "07:00"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 57.0,
-            "raw_turbidity": "57",
+            "turbidity": 61.0,
+            "raw_turbidity": "61",
             "is_high": false,
             "date": "15/10/2569",
-            "time": "04:30"
+            "time": "07:00"
         },
         {
             "id": "S14",
@@ -57,7 +57,7 @@
             "raw_turbidity": "56",
             "is_high": false,
             "date": "15/10/2569",
-            "time": "04:40"
+            "time": "07:00"
         }
     ]
 }
