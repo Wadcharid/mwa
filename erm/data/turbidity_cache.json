@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "15/10/2569",
-    "time": "16:40",
-    "updated_at": "2026-10-15 09:43:21",
+    "time": "21:20",
+    "updated_at": "2026-10-15 14:27:30",
     "data": [
         {
             "id": "S16",
@@ -12,34 +12,34 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "15/10/2026",
-            "time": "09:43"
+            "time": "14:27"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 86.0,
-            "raw_turbidity": "86",
+            "turbidity": 79.0,
+            "raw_turbidity": "79",
             "is_high": false,
             "date": "15/10/2569",
-            "time": "16:40"
+            "time": "21:20"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 141.0,
-            "raw_turbidity": "141",
+            "turbidity": 148.0,
+            "raw_turbidity": "148",
             "is_high": true,
             "date": "15/10/2569",
-            "time": "16:40"
+            "time": "21:20"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 56.0,
-            "raw_turbidity": "56",
+            "turbidity": 52.0,
+            "raw_turbidity": "52",
             "is_high": false,
             "date": "15/10/2569",
-            "time": "16:40"
+            "time": "21:20"
         },
         {
             "id": "S12",
@@ -48,16 +48,16 @@
             "raw_turbidity": "53",
             "is_high": false,
             "date": "15/10/2569",
-            "time": "16:40"
+            "time": "21:20"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 48.0,
-            "raw_turbidity": "48",
+            "turbidity": 52.0,
+            "raw_turbidity": "52",
             "is_high": false,
             "date": "15/10/2569",
-            "time": "16:40"
+            "time": "21:20"
         }
     ]
 }
