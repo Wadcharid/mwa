@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "16/10/2569",
-    "time": "16:10",
-    "updated_at": "2026-10-16 09:19:52",
+    "time": "21:00",
+    "updated_at": "2026-10-16 14:09:25",
     "data": [
         {
             "id": "S16",
@@ -12,25 +12,25 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "16/10/2026",
-            "time": "09:19"
+            "time": "14:09"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 170.0,
-            "raw_turbidity": "170",
+            "turbidity": 155.0,
+            "raw_turbidity": "155",
             "is_high": true,
             "date": "16/10/2569",
-            "time": "16:10"
+            "time": "21:00"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 124.0,
-            "raw_turbidity": "124",
+            "turbidity": 144.0,
+            "raw_turbidity": "144",
             "is_high": true,
             "date": "16/10/2569",
-            "time": "16:10"
+            "time": "21:00"
         },
         {
             "id": "S9",
@@ -39,25 +39,25 @@
             "raw_turbidity": "59",
             "is_high": false,
             "date": "16/10/2569",
-            "time": "16:10"
+            "time": "21:00"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 50.0,
-            "raw_turbidity": "50",
+            "turbidity": 52.0,
+            "raw_turbidity": "52",
             "is_high": false,
             "date": "16/10/2569",
-            "time": "16:10"
+            "time": "21:00"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 63.0,
-            "raw_turbidity": "63",
+            "turbidity": 57.0,
+            "raw_turbidity": "57",
             "is_high": false,
             "date": "16/10/2569",
-            "time": "16:10"
+            "time": "21:00"
         }
     ]
 }
