@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "18/10/2569",
-    "time": "00:10",
-    "updated_at": "2026-10-17 17:17:46",
+    "time": "02:30",
+    "updated_at": "2026-10-17 19:38:58",
     "data": [
         {
             "id": "S16",
@@ -12,34 +12,34 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "17/10/2026",
-            "time": "17:17"
+            "time": "19:38"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 271.0,
-            "raw_turbidity": "271",
+            "turbidity": 270.0,
+            "raw_turbidity": "270",
             "is_high": true,
             "date": "18/10/2569",
-            "time": "00:10"
+            "time": "02:30"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 177.0,
-            "raw_turbidity": "177",
+            "turbidity": 159.0,
+            "raw_turbidity": "159",
             "is_high": true,
             "date": "18/10/2569",
-            "time": "00:10"
+            "time": "02:30"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 70.0,
-            "raw_turbidity": "70",
+            "turbidity": 73.0,
+            "raw_turbidity": "73",
             "is_high": false,
             "date": "18/10/2569",
-            "time": "00:10"
+            "time": "02:30"
         },
         {
             "id": "S12",
@@ -48,16 +48,16 @@
             "raw_turbidity": "67",
             "is_high": false,
             "date": "18/10/2569",
-            "time": "00:10"
+            "time": "02:30"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 59.0,
-            "raw_turbidity": "59",
+            "turbidity": 58.0,
+            "raw_turbidity": "58",
             "is_high": false,
             "date": "18/10/2569",
-            "time": "00:10"
+            "time": "02:30"
         }
     ]
 }
