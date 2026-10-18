@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "19/10/2569",
-    "time": "04:20",
-    "updated_at": "2026-10-18 21:25:41",
+    "time": "06:30",
+    "updated_at": "2026-10-18 23:34:46",
     "data": [
         {
             "id": "S16",
@@ -12,25 +12,25 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "18/10/2026",
-            "time": "21:25"
+            "time": "23:34"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 177.0,
-            "raw_turbidity": "177",
+            "turbidity": 167.0,
+            "raw_turbidity": "167",
             "is_high": true,
             "date": "19/10/2569",
-            "time": "04:20"
+            "time": "06:30"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 137.0,
-            "raw_turbidity": "137",
+            "turbidity": 135.0,
+            "raw_turbidity": "135",
             "is_high": true,
             "date": "19/10/2569",
-            "time": "04:20"
+            "time": "06:30"
         },
         {
             "id": "S9",
@@ -39,7 +39,7 @@
             "raw_turbidity": "87",
             "is_high": false,
             "date": "19/10/2569",
-            "time": "04:20"
+            "time": "06:30"
         },
         {
             "id": "S12",
@@ -48,7 +48,7 @@
             "raw_turbidity": "69",
             "is_high": false,
             "date": "19/10/2569",
-            "time": "04:20"
+            "time": "06:30"
         },
         {
             "id": "S14",
@@ -57,7 +57,7 @@
             "raw_turbidity": "66",
             "is_high": false,
             "date": "19/10/2569",
-            "time": "04:20"
+            "time": "06:30"
         }
     ]
 }
