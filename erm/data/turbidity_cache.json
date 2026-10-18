@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "19/10/2569",
-    "time": "01:50",
-    "updated_at": "2026-10-18 18:58:18",
+    "time": "04:20",
+    "updated_at": "2026-10-18 21:25:41",
     "data": [
         {
             "id": "S16",
@@ -12,16 +12,16 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "18/10/2026",
-            "time": "18:58"
+            "time": "21:25"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 191.0,
-            "raw_turbidity": "191",
+            "turbidity": 177.0,
+            "raw_turbidity": "177",
             "is_high": true,
             "date": "19/10/2569",
-            "time": "01:50"
+            "time": "04:20"
         },
         {
             "id": "S11",
@@ -30,7 +30,7 @@
             "raw_turbidity": "137",
             "is_high": true,
             "date": "19/10/2569",
-            "time": "01:50"
+            "time": "04:20"
         },
         {
             "id": "S9",
@@ -39,7 +39,7 @@
             "raw_turbidity": "87",
             "is_high": false,
             "date": "19/10/2569",
-            "time": "01:50"
+            "time": "04:20"
         },
         {
             "id": "S12",
@@ -48,16 +48,16 @@
             "raw_turbidity": "69",
             "is_high": false,
             "date": "19/10/2569",
-            "time": "01:50"
+            "time": "04:20"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 67.0,
-            "raw_turbidity": "67",
+            "turbidity": 66.0,
+            "raw_turbidity": "66",
             "is_high": false,
             "date": "19/10/2569",
-            "time": "01:50"
+            "time": "04:20"
         }
     ]
 }
