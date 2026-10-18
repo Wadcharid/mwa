@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "18/10/2569",
-    "time": "15:50",
-    "updated_at": "2026-10-18 08:52:46",
+    "time": "20:00",
+    "updated_at": "2026-10-18 13:08:31",
     "data": [
         {
             "id": "S16",
@@ -12,52 +12,52 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "18/10/2026",
-            "time": "08:52"
+            "time": "13:08"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 246.0,
-            "raw_turbidity": "246",
+            "turbidity": 222.0,
+            "raw_turbidity": "222",
             "is_high": true,
             "date": "18/10/2569",
-            "time": "15:50"
+            "time": "20:00"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 148.0,
-            "raw_turbidity": "148",
+            "turbidity": 133.0,
+            "raw_turbidity": "133",
             "is_high": true,
             "date": "18/10/2569",
-            "time": "15:50"
+            "time": "20:00"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 83.0,
-            "raw_turbidity": "83",
+            "turbidity": 79.0,
+            "raw_turbidity": "79",
             "is_high": false,
             "date": "18/10/2569",
-            "time": "15:50"
+            "time": "20:00"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 78.0,
-            "raw_turbidity": "78",
+            "turbidity": 73.0,
+            "raw_turbidity": "73",
             "is_high": false,
             "date": "18/10/2569",
-            "time": "15:50"
+            "time": "19:50"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 75.0,
-            "raw_turbidity": "75",
+            "turbidity": 68.0,
+            "raw_turbidity": "68",
             "is_high": false,
             "date": "18/10/2569",
-            "time": "15:50"
+            "time": "20:00"
         }
     ]
 }
