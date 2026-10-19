@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "19/10/2569",
-    "time": "06:30",
-    "updated_at": "2026-10-18 23:34:46",
+    "time": "08:40",
+    "updated_at": "2026-10-19 01:47:06",
     "data": [
         {
             "id": "S16",
@@ -11,26 +11,26 @@
             "turbidity": null,
             "raw_turbidity": "-",
             "is_high": false,
-            "date": "18/10/2026",
-            "time": "23:34"
+            "date": "19/10/2026",
+            "time": "01:47"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 167.0,
-            "raw_turbidity": "167",
+            "turbidity": 159.0,
+            "raw_turbidity": "159",
             "is_high": true,
             "date": "19/10/2569",
-            "time": "06:30"
+            "time": "08:40"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 135.0,
-            "raw_turbidity": "135",
+            "turbidity": 128.0,
+            "raw_turbidity": "128",
             "is_high": true,
             "date": "19/10/2569",
-            "time": "06:30"
+            "time": "08:40"
         },
         {
             "id": "S9",
@@ -39,25 +39,25 @@
             "raw_turbidity": "87",
             "is_high": false,
             "date": "19/10/2569",
-            "time": "06:30"
+            "time": "08:40"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 69.0,
-            "raw_turbidity": "69",
+            "turbidity": 70.0,
+            "raw_turbidity": "70",
             "is_high": false,
             "date": "19/10/2569",
-            "time": "06:30"
+            "time": "08:40"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 66.0,
-            "raw_turbidity": "66",
+            "turbidity": 68.0,
+            "raw_turbidity": "68",
             "is_high": false,
             "date": "19/10/2569",
-            "time": "06:30"
+            "time": "08:40"
         }
     ]
 }
