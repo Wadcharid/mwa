@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "20/10/2569",
-    "time": "03:30",
-    "updated_at": "2026-10-19 20:36:33",
+    "time": "06:50",
+    "updated_at": "2026-10-19 23:57:00",
     "data": [
         {
             "id": "S16",
@@ -12,7 +12,7 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "19/10/2026",
-            "time": "20:36"
+            "time": "23:57"
         },
         {
             "id": "T5",
@@ -21,34 +21,34 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "20/10/2569",
-            "time": "03:30"
+            "time": "06:50"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 76.0,
-            "raw_turbidity": "76",
+            "turbidity": 79.0,
+            "raw_turbidity": "79",
             "is_high": false,
             "date": "20/10/2569",
-            "time": "03:30"
+            "time": "06:50"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 73.0,
-            "raw_turbidity": "73",
+            "turbidity": 71.0,
+            "raw_turbidity": "71",
             "is_high": false,
             "date": "20/10/2569",
-            "time": "03:30"
+            "time": "06:50"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 84.0,
-            "raw_turbidity": "84",
+            "turbidity": 91.0,
+            "raw_turbidity": "91",
             "is_high": false,
             "date": "20/10/2569",
-            "time": "03:30"
+            "time": "06:50"
         },
         {
             "id": "S14",
@@ -57,7 +57,7 @@
             "raw_turbidity": "63",
             "is_high": false,
             "date": "20/10/2569",
-            "time": "03:30"
+            "time": "06:50"
         }
     ]
 }
