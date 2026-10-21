@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "21/10/2569",
-    "time": "05:10",
-    "updated_at": "2026-10-20 22:11:52",
+    "time": "07:40",
+    "updated_at": "2026-10-21 00:40:05",
     "data": [
         {
             "id": "S16",
@@ -11,17 +11,17 @@
             "turbidity": null,
             "raw_turbidity": "-",
             "is_high": false,
-            "date": "20/10/2026",
-            "time": "22:11"
+            "date": "21/10/2026",
+            "time": "00:40"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 72.0,
-            "raw_turbidity": "72",
+            "turbidity": 70.0,
+            "raw_turbidity": "70",
             "is_high": false,
             "date": "21/10/2569",
-            "time": "05:10"
+            "time": "07:30"
         },
         {
             "id": "S11",
@@ -30,34 +30,34 @@
             "raw_turbidity": "83",
             "is_high": false,
             "date": "21/10/2569",
-            "time": "05:10"
+            "time": "07:40"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 59.0,
-            "raw_turbidity": "59",
+            "turbidity": 58.0,
+            "raw_turbidity": "58",
             "is_high": false,
             "date": "21/10/2569",
-            "time": "05:10"
+            "time": "07:30"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 91.0,
-            "raw_turbidity": "91",
+            "turbidity": 94.0,
+            "raw_turbidity": "94",
             "is_high": false,
             "date": "21/10/2569",
-            "time": "05:10"
+            "time": "07:40"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 72.0,
-            "raw_turbidity": "72",
+            "turbidity": 77.0,
+            "raw_turbidity": "77",
             "is_high": false,
             "date": "21/10/2569",
-            "time": "05:10"
+            "time": "07:40"
         }
     ]
 }
