@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "24/10/2569",
-    "time": "11:40",
-    "updated_at": "2026-10-24 04:41:56",
+    "time": "16:00",
+    "updated_at": "2026-10-24 09:09:55",
     "data": [
         {
             "id": "S16",
@@ -12,43 +12,43 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "24/10/2026",
-            "time": "04:41"
+            "time": "09:09"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 25.9,
-            "raw_turbidity": "25.9",
+            "turbidity": 28.4,
+            "raw_turbidity": "28.4",
             "is_high": false,
             "date": "24/10/2569",
-            "time": "11:40"
+            "time": "16:00"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 28.6,
-            "raw_turbidity": "28.6",
+            "turbidity": 31.9,
+            "raw_turbidity": "31.9",
             "is_high": false,
             "date": "24/10/2569",
-            "time": "11:40"
+            "time": "16:00"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 22.1,
-            "raw_turbidity": "22.1",
+            "turbidity": 22.4,
+            "raw_turbidity": "22.4",
             "is_high": false,
             "date": "24/10/2569",
-            "time": "11:40"
+            "time": "15:50"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 47.0,
-            "raw_turbidity": "47",
+            "turbidity": 43.0,
+            "raw_turbidity": "43",
             "is_high": false,
             "date": "24/10/2569",
-            "time": "11:40"
+            "time": "16:00"
         },
         {
             "id": "S14",
@@ -57,7 +57,7 @@
             "raw_turbidity": "60",
             "is_high": false,
             "date": "24/10/2569",
-            "time": "11:40"
+            "time": "16:00"
         }
     ]
 }
