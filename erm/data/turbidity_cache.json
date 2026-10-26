@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "26/10/2569",
-    "time": "05:20",
-    "updated_at": "2026-10-25 22:29:29",
+    "time": "07:40",
+    "updated_at": "2026-10-26 00:40:57",
     "data": [
         {
             "id": "S16",
@@ -12,25 +12,25 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "05:20"
+            "time": "07:30"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 28.3,
-            "raw_turbidity": "28.3",
+            "turbidity": 31.1,
+            "raw_turbidity": "31.1",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "05:20"
+            "time": "07:30"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 20.4,
-            "raw_turbidity": "20.4",
+            "turbidity": 23.0,
+            "raw_turbidity": "23.0",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "05:20"
+            "time": "07:40"
         },
         {
             "id": "S9",
@@ -39,25 +39,25 @@
             "raw_turbidity": "17.7",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "05:20"
+            "time": "07:40"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 33.2,
-            "raw_turbidity": "33.2",
+            "turbidity": 37.4,
+            "raw_turbidity": "37.4",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "05:20"
+            "time": "07:40"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 43.0,
-            "raw_turbidity": "43",
+            "turbidity": 44.0,
+            "raw_turbidity": "44",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "05:20"
+            "time": "07:40"
         }
     ]
 }
