@@ -2,8 +2,8 @@
     "status": "success",
     "source": "live",
     "date": "26/10/2569",
-    "time": "12:20",
-    "updated_at": "2026-10-26 05:24:56",
+    "time": "18:20",
+    "updated_at": "2026-10-26 11:27:01",
     "data": [
         {
             "id": "S16",
@@ -12,52 +12,52 @@
             "raw_turbidity": "-",
             "is_high": false,
             "date": "26/10/2026",
-            "time": "05:24"
+            "time": "11:27"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 28.9,
-            "raw_turbidity": "28.9",
+            "turbidity": 33.3,
+            "raw_turbidity": "33.3",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "12:20"
+            "time": "18:20"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 24.9,
-            "raw_turbidity": "24.9",
+            "turbidity": 23.9,
+            "raw_turbidity": "23.9",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "12:20"
+            "time": "18:20"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 17.1,
-            "raw_turbidity": "17.1",
+            "turbidity": 16.9,
+            "raw_turbidity": "16.9",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "12:20"
+            "time": "18:20"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 30.9,
-            "raw_turbidity": "30.9",
+            "turbidity": 26.4,
+            "raw_turbidity": "26.4",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "12:20"
+            "time": "18:20"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 34.0,
-            "raw_turbidity": "34.0",
+            "turbidity": 36.4,
+            "raw_turbidity": "36.4",
             "is_high": false,
             "date": "26/10/2569",
-            "time": "12:20"
+            "time": "18:20"
         }
     ]
 }
