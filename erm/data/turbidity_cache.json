@@ -3,52 +3,52 @@
     "source": "live",
     "date": "01/11/2569",
     "time": "19:10",
-    "updated_at": "2026-11-01 13:50:24",
+    "updated_at": "2026-11-01 18:50:09",
     "data": [
         {
             "id": "S16",
             "name": "แควน้อย",
-            "turbidity": 39.5,
-            "raw_turbidity": "39.5",
+            "turbidity": 32.3,
+            "raw_turbidity": "32.3",
             "is_high": false,
-            "date": "01/11/2569",
-            "time": "20:40"
+            "date": "02/11/2569",
+            "time": "01:40"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 73.0,
-            "raw_turbidity": "73",
+            "turbidity": 72.0,
+            "raw_turbidity": "72",
             "is_high": false,
-            "date": "01/11/2569",
-            "time": "20:40"
+            "date": "02/11/2569",
+            "time": "01:40"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 38.2,
-            "raw_turbidity": "38.2",
+            "turbidity": 30.8,
+            "raw_turbidity": "30.8",
             "is_high": false,
-            "date": "01/11/2569",
-            "time": "20:50"
+            "date": "02/11/2569",
+            "time": "01:50"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 13.0,
-            "raw_turbidity": "13.0",
+            "turbidity": 12.3,
+            "raw_turbidity": "12.3",
             "is_high": false,
-            "date": "01/11/2569",
-            "time": "20:50"
+            "date": "02/11/2569",
+            "time": "01:40"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 18.4,
-            "raw_turbidity": "18.4",
+            "turbidity": 20.2,
+            "raw_turbidity": "20.2",
             "is_high": false,
-            "date": "01/11/2569",
-            "time": "20:50"
+            "date": "02/11/2569",
+            "time": "01:50"
         },
         {
             "id": "S14",
