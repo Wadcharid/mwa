@@ -3,52 +3,52 @@
     "source": "live",
     "date": "01/11/2569",
     "time": "19:10",
-    "updated_at": "2026-11-02 01:52:41",
+    "updated_at": "2026-11-02 09:18:01",
     "data": [
         {
             "id": "S16",
             "name": "แควน้อย",
-            "turbidity": 30.0,
-            "raw_turbidity": "30.0",
+            "turbidity": 29.4,
+            "raw_turbidity": "29.4",
             "is_high": false,
             "date": "02/11/2569",
-            "time": "08:50"
+            "time": "16:10"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 77.0,
-            "raw_turbidity": "77",
+            "turbidity": 89.0,
+            "raw_turbidity": "89",
             "is_high": false,
             "date": "02/11/2569",
-            "time": "08:50"
+            "time": "16:10"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 29.7,
-            "raw_turbidity": "29.7",
+            "turbidity": 21.0,
+            "raw_turbidity": "21.0",
             "is_high": false,
             "date": "02/11/2569",
-            "time": "08:50"
+            "time": "16:10"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 14.4,
-            "raw_turbidity": "14.4",
+            "turbidity": 14.6,
+            "raw_turbidity": "14.6",
             "is_high": false,
             "date": "02/11/2569",
-            "time": "08:50"
+            "time": "16:10"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 21.8,
-            "raw_turbidity": "21.8",
+            "turbidity": 18.9,
+            "raw_turbidity": "18.9",
             "is_high": false,
             "date": "02/11/2569",
-            "time": "08:50"
+            "time": "16:10"
         },
         {
             "id": "S14",
