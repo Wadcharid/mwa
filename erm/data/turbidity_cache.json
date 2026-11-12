@@ -2,53 +2,53 @@
     "status": "success",
     "source": "live",
     "date": "12/11/2569",
-    "time": "10:00",
-    "updated_at": "2026-11-12 03:07:07",
+    "time": "18:20",
+    "updated_at": "2026-11-12 11:22:09",
     "data": [
         {
             "id": "S16",
             "name": "แควน้อย",
-            "turbidity": null,
-            "raw_turbidity": "-",
+            "turbidity": 25.1,
+            "raw_turbidity": "25.1",
             "is_high": false,
             "date": "12/11/2569",
-            "time": "10:00"
+            "time": "18:20"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 40.0,
-            "raw_turbidity": "40.0",
+            "turbidity": 27.8,
+            "raw_turbidity": "27.8",
             "is_high": false,
             "date": "12/11/2569",
-            "time": "10:00"
+            "time": "18:20"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 25.8,
-            "raw_turbidity": "25.8",
+            "turbidity": 27.2,
+            "raw_turbidity": "27.2",
             "is_high": false,
             "date": "12/11/2569",
-            "time": "10:00"
+            "time": "18:20"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 17.9,
-            "raw_turbidity": "17.9",
+            "turbidity": 22.6,
+            "raw_turbidity": "22.6",
             "is_high": false,
             "date": "12/11/2569",
-            "time": "10:00"
+            "time": "18:20"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 24.9,
-            "raw_turbidity": "24.9",
+            "turbidity": 22.1,
+            "raw_turbidity": "22.1",
             "is_high": false,
             "date": "12/11/2569",
-            "time": "10:00"
+            "time": "18:20"
         },
         {
             "id": "S14",
@@ -57,7 +57,7 @@
             "raw_turbidity": "23.5",
             "is_high": false,
             "date": "12/11/2569",
-            "time": "10:00"
+            "time": "18:20"
         }
     ]
 }
