@@ -1,45 +1,45 @@
 {
     "status": "success",
     "source": "live",
-    "date": "27/11/2569",
-    "time": "15:00",
-    "updated_at": "2026-11-27 08:08:06",
+    "date": "28/11/2569",
+    "time": "01:10",
+    "updated_at": "2026-11-27 18:13:57",
     "data": [
         {
             "id": "S16",
             "name": "แควน้อย",
-            "turbidity": 13.1,
-            "raw_turbidity": "13.1",
+            "turbidity": 15.2,
+            "raw_turbidity": "15.2",
             "is_high": false,
-            "date": "27/11/2569",
-            "time": "15:00"
+            "date": "28/11/2569",
+            "time": "01:10"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 1.7,
-            "raw_turbidity": "1.7",
+            "turbidity": 3.9,
+            "raw_turbidity": "3.9",
             "is_high": false,
-            "date": "27/11/2569",
-            "time": "15:00"
+            "date": "28/11/2569",
+            "time": "01:10"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 11.3,
-            "raw_turbidity": "11.3",
+            "turbidity": 10.6,
+            "raw_turbidity": "10.6",
             "is_high": false,
-            "date": "27/11/2569",
-            "time": "15:00"
+            "date": "28/11/2569",
+            "time": "01:10"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 9.4,
-            "raw_turbidity": "9.4",
+            "turbidity": 5.3,
+            "raw_turbidity": "5.3",
             "is_high": false,
-            "date": "27/11/2569",
-            "time": "15:00"
+            "date": "28/11/2569",
+            "time": "01:10"
         },
         {
             "id": "S12",
@@ -53,11 +53,11 @@
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 29.2,
-            "raw_turbidity": "29.2",
+            "turbidity": 37.5,
+            "raw_turbidity": "37.5",
             "is_high": false,
-            "date": "27/11/2569",
-            "time": "15:00"
+            "date": "28/11/2569",
+            "time": "01:10"
         }
     ]
 }
