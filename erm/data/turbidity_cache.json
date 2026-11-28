@@ -1,63 +1,63 @@
 {
     "status": "success",
     "source": "live",
-    "date": "28/11/2569",
-    "time": "16:20",
-    "updated_at": "2026-11-28 09:24:24",
+    "date": "29/11/2569",
+    "time": "00:40",
+    "updated_at": "2026-11-28 17:44:11",
     "data": [
         {
             "id": "S16",
             "name": "แควน้อย",
-            "turbidity": 18.1,
-            "raw_turbidity": "18.1",
+            "turbidity": 14.9,
+            "raw_turbidity": "14.9",
             "is_high": false,
-            "date": "28/11/2569",
-            "time": "16:20"
+            "date": "29/11/2569",
+            "time": "00:40"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 6.1,
-            "raw_turbidity": "6.1",
+            "turbidity": 4.6,
+            "raw_turbidity": "4.6",
             "is_high": false,
-            "date": "28/11/2569",
-            "time": "16:20"
+            "date": "29/11/2569",
+            "time": "00:40"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 14.6,
-            "raw_turbidity": "14.6",
+            "turbidity": 12.8,
+            "raw_turbidity": "12.8",
             "is_high": false,
-            "date": "28/11/2569",
-            "time": "16:20"
+            "date": "29/11/2569",
+            "time": "00:40"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 13.4,
-            "raw_turbidity": "13.4",
+            "turbidity": 6.8,
+            "raw_turbidity": "6.8",
             "is_high": false,
-            "date": "28/11/2569",
-            "time": "16:20"
+            "date": "29/11/2569",
+            "time": "00:40"
         },
         {
             "id": "S12",
             "name": "บางเลน กม.35",
-            "turbidity": 18.7,
-            "raw_turbidity": "18.7",
+            "turbidity": 22.4,
+            "raw_turbidity": "22.4",
             "is_high": false,
-            "date": "28/11/2569",
-            "time": "16:20"
+            "date": "29/11/2569",
+            "time": "00:10"
         },
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 28.2,
-            "raw_turbidity": "28.2",
+            "turbidity": 36.7,
+            "raw_turbidity": "36.7",
             "is_high": false,
-            "date": "28/11/2569",
-            "time": "16:20"
+            "date": "29/11/2569",
+            "time": "00:40"
         }
     ]
 }
