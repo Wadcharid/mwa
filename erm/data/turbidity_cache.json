@@ -2,44 +2,44 @@
     "status": "success",
     "source": "live",
     "date": "28/11/2569",
-    "time": "01:10",
-    "updated_at": "2026-11-27 18:13:57",
+    "time": "08:30",
+    "updated_at": "2026-11-28 01:30:15",
     "data": [
         {
             "id": "S16",
             "name": "แควน้อย",
-            "turbidity": 15.2,
-            "raw_turbidity": "15.2",
+            "turbidity": 15.5,
+            "raw_turbidity": "15.5",
             "is_high": false,
             "date": "28/11/2569",
-            "time": "01:10"
+            "time": "08:20"
         },
         {
             "id": "T5",
             "name": "แควใหญ่",
-            "turbidity": 3.9,
-            "raw_turbidity": "3.9",
+            "turbidity": 2.4,
+            "raw_turbidity": "2.4",
             "is_high": false,
             "date": "28/11/2569",
-            "time": "01:10"
+            "time": "08:20"
         },
         {
             "id": "S11",
             "name": "แม่กลอง",
-            "turbidity": 10.6,
-            "raw_turbidity": "10.6",
+            "turbidity": 13.2,
+            "raw_turbidity": "13.2",
             "is_high": false,
             "date": "28/11/2569",
-            "time": "01:10"
+            "time": "08:30"
         },
         {
             "id": "S9",
             "name": "ท่าม่วง",
-            "turbidity": 5.3,
-            "raw_turbidity": "5.3",
+            "turbidity": 7.1,
+            "raw_turbidity": "7.1",
             "is_high": false,
             "date": "28/11/2569",
-            "time": "01:10"
+            "time": "08:20"
         },
         {
             "id": "S12",
@@ -53,11 +53,11 @@
         {
             "id": "S14",
             "name": "คลองตะวันตก กม.14",
-            "turbidity": 37.5,
-            "raw_turbidity": "37.5",
+            "turbidity": 35.7,
+            "raw_turbidity": "35.7",
             "is_high": false,
             "date": "28/11/2569",
-            "time": "01:10"
+            "time": "08:30"
         }
     ]
 }
